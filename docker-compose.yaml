@@ -47,7 +47,7 @@ services:
       context: .
       dockerfile: mail.Dockerfile
     ports:
-      - "1025:1025" # SMTP port (εδώ στέλνει η Java)
-      - "8025:8025" # Web UI (εδώ μπαίνεις εσύ να δεις το email)
+      - "1025:1025" # SMTP port 
+      - "8025:8025" # Web UI 
 volumes:
   dslabdb:
