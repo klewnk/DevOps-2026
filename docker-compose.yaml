@@ -22,11 +22,8 @@ services:
     volumes:
       - 'dslabdb:/var/lib/postgresql/data/'
 
-      
-  #spring:
-   #   image: db
-   spring:
-      image: ghcr.io/klewnk/spring-app:latest # Χρησιμοποίησε το πλήρες όνομα του image
+  spring:
+      image: ghcr.io/klewnk/spring-app:latest # Χρησιμοποίησε το πλήρες όνομα του image  #   image: db
       # build: ... (μπορείς να το σβήσεις στο VM, το build γίνεται στον Jenkins)
       build:
         context: .
