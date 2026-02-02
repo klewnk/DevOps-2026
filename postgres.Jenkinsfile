@@ -65,17 +65,6 @@ ansible all -i ansible-devops/host.yaml -m shell \
         }
 
 
-        stage('Integration Test') {
-    steps {
-        sh """
-        echo "Checking if Frontend can talk to Backend..."
-        # Στέλνουμε μια εντολή στο VM να κάνει curl από το ένα container στο άλλο
-        ansible all -i ansible-devops/host.yaml -m shell \
-        -a "docker exec app-frontend-1 curl -s http://app-spring-1:8080/actuator/health" \
-        --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
-        -e "ansible_host=${AZURE_IP} ansible_user=azureuser" --limit azurevm-1
-        """
-    }
-}
+        
     }
 }

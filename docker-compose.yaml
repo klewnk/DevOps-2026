@@ -29,7 +29,7 @@ services:
         context: .
         dockerfile: nonroot-multistage.Dockerfile
       ports:
-       - "8081:8080"
+       - "8080:8080"
       depends_on:
         db:
           condition: service_healthy 
@@ -43,14 +43,6 @@ services:
          timeout: 30s
          retries: 3
 
-
-  frontend:
-       image: ghcr.io/klewnk/my-frontend:latest
-       ports:
-          - "80:80"
-       depends_on:
-        backend:
-             condition: service_healthy # Το Frontend θα ξεκινήσει ΜΟΝΟ αν το backend είναι UP
 
   mailhog:
     image: mailhog/mailhog:latest
