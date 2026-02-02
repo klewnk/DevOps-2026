@@ -54,7 +54,7 @@ pipeline {
             -a "cd ~/app && echo '${DOCKER_TOKEN}' | docker login ghcr.io -u ${DOCKER_USER} --password-stdin && docker compose down && docker compose pull && docker compose up -d" \
             --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
             -e "ansible_host=${AZURE_IP} ansible_user=azureuser" --limit azurevm-1
-            "sudo systemctl stop postgresql"
+
 ansible all -i ansible-devops/host.yaml -m shell \
 -a "sudo systemctl stop postgresql || true && cd ~/app && echo '${DOCKER_TOKEN}' | docker login ghcr.io -u ${DOCKER_USER} --password-stdin && docker compose down && docker compose up -d" \
 --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
