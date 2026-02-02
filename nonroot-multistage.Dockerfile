@@ -5,7 +5,6 @@ WORKDIR /build
 
 COPY project20205/pom.xml .
 
-
 COPY project20205/src/ ./src
 
 RUN mvn clean package -DskipTests
