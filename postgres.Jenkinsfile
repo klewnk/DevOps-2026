@@ -46,8 +46,8 @@ pipeline {
                     --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
                     -e "ansible_host=${AZURE_IP} ansible_user=azureuser" --limit azurevm-1
 
-                    # 2. Αντιγραφή του docker-compose.yml στο VM
-                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY} docker-compose.yml azureuser@${AZURE_IP}:~/app/docker-compose.yml
+                    # 2. Αντιγραφή του docker-compose.yaml στο VM
+                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY} docker-compose.yaml azureuser@${AZURE_IP}:~/app/docker-compose.yaml
 
                     # 3. Docker Compose Up
                     ansible all -i ansible-devops/host.yaml -m shell \
