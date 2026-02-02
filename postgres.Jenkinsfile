@@ -51,7 +51,7 @@ pipeline {
 
                     # 3. Docker Compose Up
                     ansible all -i ansible-devops/host.yaml -m shell \
-                    -a "cd ~/app && docker-compose pull && docker-compose up -d" \
+                    -a "cd ~/app && docker compose pull && docker compose up -d" \
                     --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
                     -e "ansible_host=${AZURE_IP} ansible_user=azureuser" --limit azurevm-1
                     """
