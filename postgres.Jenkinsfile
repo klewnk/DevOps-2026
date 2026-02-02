@@ -15,6 +15,11 @@ pipeline {
     stages {
         stage('Docker Build & Push') {
             steps {
+
+
+                // Εντολή για να κατέβουν τα αρχεία μέσα από το submodule
+                sh 'git submodule update --init --recursive'
+
                 withCredentials([string(credentialsId: 'docker-push-secret', variable: 'DOCKER_TOKEN')]) {
                     sh """
                     # Χτίσιμο του Spring App χρησιμοποιώντας το Dockerfile σου
