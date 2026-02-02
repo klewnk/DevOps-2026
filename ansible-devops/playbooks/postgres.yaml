@@ -1,0 +1,72 @@
+---
+ - name: Install Postgres
+   hosts: all
+
+
+
+   vars: 
+    db_name: "testdb"
+
+
+
+   tasks:
+
+   - name: print db name
+     debug: 
+       msg: "Database name is {{db_name}}"
+     #vars:
+     #  db_name: 
+
+   - name: "install postgres package"
+     apt: 
+       name: 
+          - postgresql
+          - python3-psycopg2
+       update_cache: yes
+       state: present 
+     become: yes
+     become_user: root 
+
+
+   - name: edit postgres.conf
+     lineinfile:
+       path: "/etc/postgresql/17/main/postgresql.conf"
+       regexp: "^#listen_addresses"
+       line: "listen_addresses = '*'"
+     become: yes
+     become_user: root
+     notify: restart postgres
+
+
+   - name: edit pg_hba.conf
+     lineinfile: 
+       path: "/etc/postgresql/17/main/pg_hba.conf"
+       line: "host	all	all	0.0.0.0/0	md5"
+     become: yes
+
+
+
+
+
+   - name: create user in postgres
+     postgresql_user:
+       name: "{{db_name}}"
+       password: "dbpassword"
+     become: yes
+     become_user: postgres
+
+   - name: create new database with name "testdb"
+     community.postgresql.postgresql_db:
+        name: testdb
+        owner: dbuser
+     become: yes
+     become_user: postgres
+    
+
+   handlers:
+      - name: restart postgres
+        service: 
+          name: postgresql
+          state: restarted 
+        become: yes
+        become_user: root

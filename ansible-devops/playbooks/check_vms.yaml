@@ -1,0 +1,7 @@
+---
+- name: Check Connectivity to Cloud VMs
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Ping all hosts to verify SSH connection
+      ansible.builtin.ping:

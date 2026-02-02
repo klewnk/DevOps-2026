@@ -3,8 +3,10 @@ FROM maven:3.9.11-amazoncorretto-24-alpine AS build
 
 WORKDIR /build
 
-COPY pom.xml .
-COPY src/ ./src
+COPY project20205/pom.xml .
+
+# Αντί για COPY src/ ./src
+COPY project20205/src/ ./src
 
 RUN mvn clean package -DskipTests
 

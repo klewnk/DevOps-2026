@@ -1,0 +1,128 @@
+---
+  - name: Install spring boot application and all the other components in docker environment
+    hosts: devops_gcloud1
+
+    tasks:
+
+      - name: Ensure Docker is available
+        shell: docker --version && docker compose version
+        register: docker_version_result # Store the result (stdout, stderr, return code)
+        ignore_errors: true # Don't fail the playbook if the command fails
+      
+      # Set a fact to check if Docker is installed
+      - name: Set Docker installed fact
+        set_fact:
+          docker_installed: "{{ docker_version_result.rc == 0 }}"
+      
+      # If Docker is not installed, then install it by running the install_docker playbook
+      - name: Include install_docker playbook if Docker is not installed
+        include_tasks: docker.yaml
+        when: not docker_installed
+
+      - name: Clone git repo
+        git:
+          repo: https://github.com/klewnk/DevOps.git   # decided to use https instead of ssh, because it is a public repository and i wanted everyone to be able to run the playbook without needing to set up SSH keys
+          dest: "{{ repo_dir }}"         
+          version: "{{ branch }}"
+          force: yes
+          accept_hostkey: yes
+          recursive: yes
+          update: yes
+
+      - name: Decrypt SSL cert
+        copy:
+          src: ../../assets/certs/mydomain.crt.encrypted
+          dest: "{{ repo_dir }}/assets/certs/mydomain.crt"
+          decrypt: yes
+          owner: root
+          mode: '0644'
+        become: yes
+
+      - name: Decrypt private key
+        copy:
+          src: ../../assets/certs/private.key.encrypted
+          dest: "{{ repo_dir }}/assets/certs/private.key"
+          decrypt: yes
+          owner: root
+          mode: '0600'
+        become: yes
+        
+      - name: Clean up encrypted certs and use the new ones
+        file:
+          path: "{{ item }}"
+          state: absent
+        loop:
+          - "{{ repo_dir  }}/assets/certs/mydomain.crt.encrypted"
+          - "{{ repo_dir  }}/assets/certs/private.key.encrypted"
+
+      # Changes application.properties to use environment variables defined and passed in the docker-compose file
+      - name: "Populate application.properties"
+        lineinfile:
+          dest: "{{ app_dir }}/src/main/resources/application.properties"
+          state: present
+          regexp: "^{{item.key}}="
+          line: "{{item.key}}={{item.value}}"
+        with_items:
+          - "{{app.env | dict2items}}"
+        tags:
+          - edit
+
+      # Decided to install pip3 and docker SDK for Python because
+      # the docker-compose module requires it to manage Docker Compose files
+      - name: Install pip3 
+        apt:
+          name: python3-pip
+          state: latest
+          update_cache: yes
+        become: yes
+        tags:
+          - install
+
+      # If i didn't install SDK for Python, i would get an error: "The docker-compose module requires the docker SDK for Python to be installed."
+      - name: Install Docker SDK for Python
+        command: pip3 install docker --break-system-packages
+        become: yes
+        tags:
+          - install
+
+      - name: Free up all the ports from previous runs
+        script: 
+          # This script will free up the ports used by previous runs by stopping the services that were using them
+          # It is a simple shell script that checks if the port is in use and kills the process using it
+          "../files/stop_services.sh"
+    
+      - name: Check if any containers are running
+        command: docker ps -q   # Get the IDs of running containers 
+        register: running_containers
+        changed_when: false
+        failed_when: false
+        tags:
+          - stop
+
+      - name: Stop any existing containers
+        community.docker.docker_compose_v2:
+          project_src: "{{ repo_dir }}"
+          state: absent
+        when: running_containers.stdout != ""  # Only stop if there are running containers
+        tags:
+          - stop
+      
+      - name: Start the containers written in the docker files
+        community.docker.docker_compose_v2:
+          project_src: "{{ repo_dir }}"
+          build: always
+          state: present
+        register: output
+        notify: Restart Docker Compose
+        tags:
+          - start
+      
+      - debug:
+          var: output
+    
+    
+    handlers:
+    - name: Restart Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ repo_dir }}"
+        state: restarted
