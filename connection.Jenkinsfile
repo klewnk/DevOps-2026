@@ -21,10 +21,20 @@ pipeline {
 
         stage('Ansible Ping (SSH Login)') {
             steps {
-                echo "--- Trying to login with SSH Key ---"
-                // Εδώ χρησιμοποιούμε το credential που έφτιαξες στον Jenkins
+                echo "--- Testing Login using Names from Git ---"
                 withCredentials([sshUserPrivateKey(credentialsId: 'id_devops_key', keyFileVariable: 'SSH_KEY')]) {
-                    sh "ansible all -i ansible-devops/host.yaml -m ping --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no'"
+                    // Χρησιμοποιούμε τις IPs από το environment section για να "γεμίσουμε" τα ονόματα του host.yaml
+                    sh """
+                    ansible all -i ansible-devops/host.yaml -m ping \
+                    --private-key=${SSH_KEY} \
+                    --ssh-common-args='-o StrictHostKeyChecking=no' \
+                    -e "ansible_host=${AZURE_IP}" --limit azurevm-1
+
+                    ansible all -i ansible-devops/host.yaml -m ping \
+                    --private-key=${SSH_KEY} \
+                    --ssh-common-args='-o StrictHostKeyChecking=no' \
+                    -e "ansible_host=${GCLOUD_IP}" --limit googlevm-1
+                    """
                 }
             }
         }
