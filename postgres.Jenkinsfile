@@ -33,31 +33,29 @@ pipeline {
             }
         }
 
-        stage('Deploy to VMs (via Ansible)') {
-            steps {
+    stage('Deploy to VMs (via Ansible)') {
+         steps {
                 withCredentials([
-                    sshUserPrivateKey(credentialsId: 'id_devops_key', keyFileVariable: 'SSH_KEY'),
-                    string(credentialsId: 'docker-push-secret', variable: 'DOCKER_TOKEN')
-                ]) {
-                    sh """
-                    # 1. Deployment στο Azure
-                    ansible all -i ansible-devops/host.yaml -m shell \
-                    -a "mkdir -p ~/app && cd ~/app && echo '${DOCKER_TOKEN}' | docker login ghcr.io -u ${DOCKER_USER} --password-stdin" \
-                    --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
-                    -e "ansible_host=${AZURE_IP} ansible_user=azureuser" --limit azurevm-1
+            sshUserPrivateKey(credentialsId: 'id_devops_key', keyFileVariable: 'SSH_KEY'),
+            string(credentialsId: 'docker-push-secret', variable: 'DOCKER_TOKEN')
+              ]) {
+            sh """
+            # 1. Προετοιμασία φακέλου και Login στο Azure
+            ansible all -i ansible-devops/host.yaml -m shell \
+            -a "mkdir -p ~/app" \
+            --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
+            -e "ansible_host=${AZURE_IP} ansible_user=azureuser" --limit azurevm-1
 
-                    # 2. Αντιγραφή του docker-compose.yaml στο VM
-                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY} docker-compose.yaml azureuser@${AZURE_IP}:~/app/docker-compose.yaml
+            # 2. Αντιγραφή του αρχείου (Χρησιμοποίησε SCP όπως το έχεις, είναι ΟΚ)
+            scp -o StrictHostKeyChecking=no -i ${SSH_KEY} docker-compose.yaml azureuser@${AZURE_IP}:~/app/docker-compose.yaml
 
-                    # 3. Docker Compose Up
-                    ansible all -i ansible-devops/host.yaml -m shell \
-                    -a "cd ~/app && docker compose pull && docker compose up -d" \
-                    --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
-                    -e "ansible_host=${AZURE_IP} ansible_user=azureuser" --limit azurevm-1
-                    """
-                    
-                    // Εδώ μπορείς να επαναλάβεις τα ίδια βήματα για το Google VM αλλάζοντας την IP και το User
-                }
+            # 3. ΚΑΘΑΡΙΣΜΟΣ ΚΑΙ ΕΚΚΙΝΗΣΗ (Εδώ είναι το κλειδί για την Port 8080)
+            ansible all -i ansible-devops/host.yaml -m shell \
+            -a "cd ~/app && echo '${DOCKER_TOKEN}' | docker login ghcr.io -u ${DOCKER_USER} --password-stdin && docker compose down && docker compose pull && docker compose up -d" \
+            --private-key=${SSH_KEY} --ssh-common-args='-o StrictHostKeyChecking=no' \
+            -e "ansible_host=${AZURE_IP} ansible_user=azureuser" --limit azurevm-1
+            """
+           }
             }
         }
     }
