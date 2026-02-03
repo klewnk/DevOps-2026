@@ -9,14 +9,25 @@
     - curl
     - apt-transport-https
     - ca-certificates
+    - gnupg
+
+- name: Create directory for Docker GPG key
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
 
 - name: Get Docker GPG key
-  shell: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -"
-  # ΕΔΩ ΣΒΗΣΑΜΕ ΤΟ args / warn ΠΟΥ ΧΤΥΠΟΥΣΕ
+  shell: |
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+  args:
+    creates: /etc/apt/keyrings/docker.asc
 
 - name: Add Docker PPA
   apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    # Η μαγική λέξη signed-by είναι απαραίτητη στο Ubuntu 25.10
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
     state: present
     update_cache: yes
 
