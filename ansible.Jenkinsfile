@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Λέμε στην Ansible πού είναι το config file
-        ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
-        // Απενεργοποιούμε το host checking για να μην κολλάει στο "yes/no"
+        // Αυτό βοηθάει να μην κολλάει στο "Are you sure you want to connect?"
         ANSIBLE_HOST_KEY_CHECKING = 'False'
     }
 
@@ -19,8 +17,7 @@ pipeline {
             steps {
                 script {
                     echo 'Testing connectivity...'
-                    // -i hosts.yaml: Διαβάζει το αρχείο που φτιάξαμε στο Βήμα 2
-                    // devops_gcloud1: Το όνομα που ξέρει το ~/.ssh/config σου
+                    // Ελέγχουμε μόνο το Google Cloud προς το παρόν που είμαστε σίγουροι ότι δουλεύει
                     sh 'ansible -i hosts.yaml devops_gcloud1 -m ping'
                 }
             }
@@ -30,8 +27,7 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying Docker...'
-                    // Τρέχουμε το playbook
-                    // Προσοχή: Το path είναι ansible-devops/playbooks/docker_deploy.yaml
+                    // Βεβαιώσου ότι αυτό το path είναι σωστό στο Git σου!
                     sh 'ansible-playbook -i hosts.yaml ansible-devops/playbooks/docker_deploy.yaml'
                 }
             }
