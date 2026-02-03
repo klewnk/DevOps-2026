@@ -26,7 +26,6 @@
 
 - name: Add Docker PPA
   apt_repository:
-    # Η μαγική λέξη signed-by είναι απαραίτητη στο Ubuntu 25.10
     repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
     state: present
     update_cache: yes
@@ -51,6 +50,7 @@
 
 - name: Add existing user to docker group
   user:
-    name: "{{ ansible_user }}"
+    # ΕΔΩ ΕΓΙΝΕ Η ΑΛΛΑΓΗ: Από ansible_user σε ansible_user_id
+    name: "{{ ansible_user_id }}"
     groups: docker
     append: yes
