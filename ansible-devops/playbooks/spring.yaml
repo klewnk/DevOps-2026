@@ -5,17 +5,14 @@
 
 
     vars:
-    # 1. Σε ποιον φάκελο να κατέβει το site;
+
      app_dir: "/opt/project20205"
-    
-    # 2. Ποιο branch;
+
      branch: "main"
-    
-    # 3. Ποιος χρήστης τρέχει το VM; (Αυτό χρειάζεται για το spring.j2)
-    # ΑΛΛΑΞΕ ΤΟ 'gclouduser' ΜΕ ΤΟ ΟΝΟΜΑ ΧΡΗΣΤΗ ΠΟΥ ΜΠΑΙΝΕΙΣ ΣΤΟ GCLOUD
+
      app_user: "kleonkola" 
 
-    # 4. Ρυθμίσεις εφαρμογής (application.properties)
+    
      app:
       env:
         SERVER_PORT: "8080"
@@ -118,7 +115,7 @@
 
       - name: Copy spring service file
         template:
-          src: ../files/spring.j2
+          src: ../services/spring.j2
           dest: "/etc/systemd/system/spring.service"
         become: yes
         become_user: root
@@ -147,7 +144,7 @@
 
       - name: Copy nginx conf file
         template:
-          src: ../files/nginx.j2
+          src: ../services/nginx.j2
           dest: "/etc/nginx/sites-available/reverse_proxy"
         become: yes
         notify: Restart nginx
