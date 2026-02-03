@@ -3,15 +3,14 @@
   hosts: devops_gcloud1
   become: yes
   
-  # ΕΔΩ ΠΡΟΣΘΕΣΑΜΕ ΤΙΣ ΜΕΤΑΒΛΗΤΕΣ ΠΟΥ ΕΛΕΙΠΑΝ
+  # ΑΥΤΟ ΕΙΝΑΙ ΤΟ ΚΟΜΜΑΤΙ ΠΟΥ ΛΕΙΠΕΙ ΚΑΙ ΧΤΥΠΑΕΙ ΤΟ ΛΑΘΟΣ
   vars:
-    repo_dir: "/home/{{ ansible_user_id }}/DevOps-2026"  # Πού θα κατέβει το repo
-    app_dir: "/home/{{ ansible_user_id }}/DevOps-2026"   # Πού είναι το app (συνήθως το ίδιο)
-    branch: "main"                                       # Ποιο branch να κατεβάσει
-    # Ορίζουμε και κενές μεταβλητές για το app env για να μην σκάσει παρακάτω
+    repo_dir: "/home/{{ ansible_user_id }}/DevOps-2026"
+    app_dir: "/home/{{ ansible_user_id }}/DevOps-2026"
+    branch: "main"
     app:
       env:
-        SERVER_PORT: "8080" # Παράδειγμα, μπορείς να βάλεις ό,τι θες ή να το αφήσεις κενό
+        SERVER_PORT: "8080"
 
   tasks:
     - name: Ensure Docker is available
@@ -30,7 +29,7 @@
 
     - name: Clone git repo
       git:
-        # ΕΔΩ ΔΙΟΡΘΩΣΑΜΕ ΤΟ URL ΣΕ DevOps-2026
+        # ΕΔΩ ΕΙΝΑΙ ΤΟ ΣΩΣΤΟ URL
         repo: https://github.com/klewnk/DevOps-2026.git
         dest: "{{ repo_dir }}"
         version: "{{ branch }}"
@@ -46,7 +45,6 @@
         decrypt: yes
         owner: root
         mode: '0644'
-      # Βάζουμε ignore_errors μήπως δεν έχεις ανεβάσει ακόμα τα encrypted files
       ignore_errors: yes 
 
     - name: Decrypt private key
@@ -77,7 +75,6 @@
         - "{{app.env | dict2items}}"
       tags:
         - edit
-      # Αγνοούμε σφάλματα αν δεν υπάρχει το αρχείο application.properties ακόμα
       ignore_errors: yes
 
     - name: Install pip3 
@@ -130,4 +127,4 @@
     - name: Restart Docker Compose
       community.docker.docker_compose_v2:
         project_src: "{{ repo_dir }}"
-        state: restarteds
+        state: restarted
