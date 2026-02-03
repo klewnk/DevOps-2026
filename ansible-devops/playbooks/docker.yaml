@@ -12,12 +12,10 @@
 
 - name: Get Docker GPG key
   shell: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -"
-  args:
-    warn: false
+  # ΕΔΩ ΣΒΗΣΑΜΕ ΤΟ args / warn ΠΟΥ ΧΤΥΠΟΥΣΕ
 
 - name: Add Docker PPA
   apt_repository:
-    # Χρησιμοποιούμε το {{ ansible_distribution_release }} για να βρει αυτόματα αν είναι focal, jammy, noble κλπ.
     repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
     state: present
     update_cache: yes
