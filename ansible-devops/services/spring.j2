@@ -3,7 +3,7 @@ Description=spring boot daemon
 After=network.target
 
 [Service]
-User={{ user }}
+User={{ app_user }}
 Group={{ group }}
 WorkingDirectory={{ service.app.workingdir }}
 ExecStart={{ service.app.execstart }}
