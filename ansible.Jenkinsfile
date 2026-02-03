@@ -21,7 +21,7 @@ pipeline {
                     echo 'Testing connectivity...'
                     // -i hosts.yaml: Διαβάζει το αρχείο που φτιάξαμε στο Βήμα 2
                     // devops_gcloud1: Το όνομα που ξέρει το ~/.ssh/config σου
-                    sh 'ansible -i ansible-devops/hosts.yaml devops_gcloud1 -m ping'
+                    sh 'ansible -i ansible-devops/hosts.yaml devops_azure1 -m ping'
                 }
             }
         }
@@ -41,8 +41,8 @@ pipeline {
             steps {
                 script {
                     echo 'Verifying Docker version...'
-                    sh "ansible -i ansible-devops/hosts.yaml devops_gcloud1 -a 'docker --version'"
-                    sh "ansible -i ansible-devops/hosts.yaml devops_gcloud1 -a 'docker compose version'"
+                    sh "ansible -i ansible-devops/hosts.yaml devops_azure1 -a 'docker --version'"
+                    sh "ansible -i ansible-devops/hosts.yaml devops_azure1 -a 'docker compose version'"
                 }
             }
         }
