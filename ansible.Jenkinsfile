@@ -31,9 +31,9 @@ pipeline {
                     // Εκτελεί το κύριο playbook. 
                     // Το ansible.cfg θα βρει αυτόματα το hosts.yaml [cite: 43]
 
-                    dir('ansible-devops/playbooks') {
-                      sh "ansible-playbook docker_deploy.yaml"
-                    }
+                    
+                      sh "ansible-playbook ansible-devops/playbooks/docker_deploy.yaml"
+                    
                 }
             }
         }
