@@ -14,15 +14,14 @@ pipeline {
             }
         }
 
-        stage('Inventory Connectivity Check') {
+        tage('Test connection to deploy env') {
             steps {
-                script {
-                    echo "Testing connection to Google Cloud VM..."
-                    // Δοκιμάζει αν το devops_gcloud1 απαντάει (χρησιμοποιώντας το host_vars)
-                    sh "ansible googlevms -m ping -i hosts.yaml"
-                }
+                sh '''
+                ansible -i ~/workspace/ansible/hosts.yaml -m ping googlevm-1
+            '''
             }
         }
+
 
         stage('Install Docker') {
             steps {
