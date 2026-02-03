@@ -30,7 +30,7 @@ pipeline {
                     echo "Starting Docker installation via Ansible..."
                     // Εκτελεί το κύριο playbook. 
                     // Το ansible.cfg θα βρει αυτόματα το hosts.yaml [cite: 43]
-                    sh "ansible-playbook deploy_docker.yml"
+                    sh "ansible-playbook deploy_docker.yaml"
                 }
             }
         }
