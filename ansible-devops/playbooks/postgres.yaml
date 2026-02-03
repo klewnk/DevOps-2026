@@ -3,11 +3,9 @@
   hosts: all
   become: yes
   vars:
-    # Τα στοιχεία πρέπει να ταιριάζουν με το application.properties του Spring
     db_name: "devops_db"
     db_user: "dbuser"
     db_password: "pass123"
-    postgres_version: "14" # Ή 15/16, το Ansible θα βρει το σωστό path με το *
 
   tasks:
     - name: Update apt cache
@@ -19,7 +17,7 @@
         name:
           - postgresql
           - postgresql-contrib
-          - python3-psycopg2  # Απαραίτητο για να διαχειριστεί το Ansible τη βάση
+          - python3-psycopg2
           - acl
         state: present
 
@@ -46,16 +44,20 @@
       become: yes
       become_user: postgres
 
-    # --- ΡΥΘΜΙΣΗ ΠΡΟΣΒΑΣΗΣ (Fix Connection Refused / Password Fail) ---
+    # --- ΡΥΘΜΙΣΗ ΠΡΟΣΒΑΣΗΣ (Δυναμική εύρεση του αρχείου) ---
 
-    - name: Allow md5 password authentication for localhost
-      # Αυτό επιτρέπει στο Spring Boot (που τρέχει στο ίδιο VM) να συνδεθεί με κωδικό
+    - name: Find pg_hba.conf path automatically
+      shell: find /etc/postgresql -name pg_hba.conf | head -n 1
+      register: pg_config_path
+      changed_when: false
+
+    - name: Allow password authentication for localhost
       community.postgresql.postgresql_pg_hba:
-        dest: "/etc/postgresql/*/main/pg_hba.conf" 
+        dest: "{{ pg_config_path.stdout }}"  # Χρησιμοποιούμε το path που βρήκαμε
         contype: host
         users: all
         source: 127.0.0.1/32
-        method: md5 # Σημαντικό: MD5 ή SCRAM-SHA-256 για να δέχεται κωδικό
+        method: scram-sha-256  # Πιο σύγχρονο από md5, δουλεύει το ίδιο
         databases: all
       become: yes
       become_user: postgres
