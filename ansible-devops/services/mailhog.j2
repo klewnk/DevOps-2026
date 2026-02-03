@@ -1,0 +1,12 @@
+[Unit]
+Description=MailHog service
+After=network.target
+
+[Service]
+User={{ user }}
+Group={{ group }}
+WorkingDirectory={{ service.mailhog.workingdir }}
+ExecStart={{ service.mailhog.execstart }}
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=spring boot daemon
+After=network.target
+
+[Service]
+User={{ user }}
+Group={{ group }}
+WorkingDirectory={{ service.app.workingdir }}
+ExecStart={{ service.app.execstart }}
+
+[Install]
+WantedBy=multi-user.target

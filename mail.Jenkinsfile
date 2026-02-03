@@ -51,7 +51,7 @@ pipeline {
                     echo "Cleaning up the mailhog container now..."
                     docker stop test-mailhog || true
                     docker rm -f test-mailhog || true
-                    ! lsof -i :8025 && echo "✅ Port 8025 is free" || (echo "❌ Port 8025 still in use" && exit 1)
+                    ! lsof -i :8025 && echo "Port 8025 is free" || (echo " Port 8025 still in use" && exit 1)
 
             '''
             }
