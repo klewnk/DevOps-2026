@@ -1,5 +1,5 @@
 ---
-- hosts: all
+#- hosts: all
 
   tasks:
     - name: Install basic packages
