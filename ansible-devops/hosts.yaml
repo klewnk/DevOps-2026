@@ -4,9 +4,7 @@ all:
       hosts:
         devops_azure1:
           ansible_host: devops_azure1
-          ansible_user: azureuser
     googlevms:
       hosts:
         devops_gcloud1:
           ansible_host: devops_gcloud1
-          ansible_user: kleonkola
