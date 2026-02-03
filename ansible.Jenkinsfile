@@ -19,7 +19,7 @@ pipeline {
                 script {
                     echo "Checking connectivity to Google Cloud VM..."
                     // Χρησιμοποιεί το γκρουπ 'googlevms' από το hosts.yaml σου
-                    sh "ansible googlevms -m ping"
+                    sh "ansible googlevms -m ping -i host.yaml"
                 }
             }
         }
@@ -32,7 +32,7 @@ pipeline {
                     // Το ansible.cfg θα βρει αυτόματα το hosts.yaml [cite: 43]
 
                     
-                      sh "ansible-playbook ansible-devops/playbooks/docker_deploy.yaml"
+                      sh "ansible-playbook -i host.yaml ansible-devops/playbooks/docker_deploy.yaml"
                     
                 }
             }
