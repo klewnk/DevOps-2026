@@ -2,34 +2,37 @@ pipeline {
     agent any
 
     environment {
-        // Ορίζουμε το config path για να μην το γράφουμε συνέχεια
+        // Λέμε στην Ansible πού είναι το config file
         ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
+        // Απενεργοποιούμε το host checking για να μην κολλάει στο "yes/no"
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Κατεβάζει τον κώδικα από το Git
                 checkout scm
             }
         }
 
-        stage('Inventory Connectivity Check') {
+        stage('Test connection to deploy env') {
             steps {
                 script {
-                    echo "Testing connection to Google Cloud VM..."
-                    // Δοκιμάζει αν το devops_gcloud1 απαντάει (χρησιμοποιώντας το host_vars)
-                    sh "ansible googlevms -m ping -i hosts.yaml"
+                    echo 'Testing connectivity...'
+                    // -i hosts.yaml: Διαβάζει το αρχείο που φτιάξαμε στο Βήμα 2
+                    // devops_gcloud1: Το όνομα που ξέρει το ~/.ssh/config σου
+                    sh 'ansible -i hosts.yaml devops_gcloud1 -m ping'
                 }
             }
         }
 
-        stage('Install Docker') {
+        stage('Install Docker on GCloud') {
             steps {
                 script {
-                    echo "Running Docker Installation Playbook..."
-                    // Τρέχει το playbook σου
-                    sh "ansible-playbook -i hosts.yaml ansible-devops/playbooks/docker_deploy.yaml"
+                    echo 'Deploying Docker...'
+                    // Τρέχουμε το playbook
+                    // Προσοχή: Το path είναι ansible-devops/playbooks/docker_deploy.yaml
+                    sh 'ansible-playbook -i hosts.yaml ansible-devops/playbooks/docker_deploy.yaml'
                 }
             }
         }
@@ -37,21 +40,11 @@ pipeline {
         stage('Verify Installation') {
             steps {
                 script {
-                    echo "Verifying Docker version on Remote VM..."
-                    // Επιβεβαιώνει ότι το Docker εγκαταστάθηκε όντως
-                    sh "ansible googlevms -a 'docker --version' -i hosts.yaml"
-                    sh "ansible googlevms -a 'docker compose version' -i hosts.yaml"
+                    echo 'Verifying Docker version...'
+                    sh "ansible -i hosts.yaml devops_gcloud1 -a 'docker --version'"
+                    sh "ansible -i hosts.yaml devops_gcloud1 -a 'docker compose version'"
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo "Deployment and Verification Successful!"
-        }
-        failure {
-            echo "Pipeline failed. Check the logs above."
         }
     }
 }
