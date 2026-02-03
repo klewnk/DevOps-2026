@@ -1,0 +1,93 @@
+---
+  - name: Install Mailhog for email testing
+    hosts: devops_gcloud1
+
+    tasks:
+
+      - name: Create a directory
+        file:
+          path: "{{ mailhog_path }}"
+          state: directory
+          mode: '0775' 
+        tags:
+          - edit
+
+      - name: Install Mailhog executable file
+        get_url:
+          url: https://github.com/mailhog/MailHog/releases/download/{{ mailhog_version }}/MailHog_linux_amd64
+          dest: "{{ mailhog_path }}/MailHog"
+        tags:
+          - install
+
+      - name: Make it executable
+        file:
+          path: "{{ mailhog_path }}/MailHog"
+          mode: '0775' 
+        tags:
+          - edit
+
+      - name: Copy mailhog service file
+        template:
+          src: ../files/mailhog.service.j2
+          dest: "/etc/systemd/system/mailhog.service"
+        become: yes
+        become_user: root
+        notify: Restart MailHog
+        tags:
+          - edit
+
+      - name: Check if the service exists
+        shell: sudo systemctl status mailhog.service
+        register: check_service
+        failed_when: false
+        changed_when: false
+
+      - name: Stop mailhog service if running
+        service:
+          name: mailhog
+          state: stopped
+        become: yes
+        when: check_service.rc == 0
+      
+      - name: Reload systemd daemon
+        systemd:
+          daemon_reload: yes
+        become: yes
+
+      - name: Reload mailhog service
+        service:
+          name: mailhog
+          state: restarted
+        become: yes
+
+      - name: Ensure mailhog service started
+        service:
+          name: mailhog
+          state: started
+          enabled: yes
+        become: yes
+
+      - name: Wait for MailHog SMTP port to be available
+        wait_for:
+          host: "{{ public_ip }}"
+          port: "{{ smtp_port }}"
+          delay: 3
+          timeout: 20
+
+      - name: Send dummy email using MailHog SMTP
+        mail:
+          host: "{{ public_ip }}"
+          port: "{{ smtp_port }}"
+          from: noreply.springboot@gmail.com
+          to: example@gmail.com
+          subject: "Welcome to MailHog!"
+          body: "This is a test email environment"
+
+
+
+    handlers:
+      - name: Restart MailHog
+        service:
+          name: mailhog
+          state: restarted
+        become: yes

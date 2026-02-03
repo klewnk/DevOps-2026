@@ -50,7 +50,7 @@
 
 - name: Add existing user to docker group
   user:
-    # ΕΔΩ ΕΓΙΝΕ Η ΑΛΛΑΓΗ: Από ansible_user σε ansible_user_id
+  
     name: "{{ ansible_user_id }}"
     groups: docker
     append: yes

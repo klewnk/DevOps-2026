@@ -1,0 +1,182 @@
+---
+  - name: Install spring boot application
+    hosts: devops_gcloud1
+    become: yes     
+
+
+    vars:
+    # 1. Σε ποιον φάκελο να κατέβει το site;
+     app_dir: "/opt/project20205"
+    
+    # 2. Ποιο branch;
+     branch: "main"
+    
+    # 3. Ποιος χρήστης τρέχει το VM; (Αυτό χρειάζεται για το spring.j2)
+    # ΑΛΛΑΞΕ ΤΟ 'gclouduser' ΜΕ ΤΟ ΟΝΟΜΑ ΧΡΗΣΤΗ ΠΟΥ ΜΠΑΙΝΕΙΣ ΣΤΟ GCLOUD
+     app_user: "kleonkola" 
+
+    # 4. Ρυθμίσεις εφαρμογής (application.properties)
+     app:
+      env:
+        SERVER_PORT: "8080"
+        # Αν η βάση τρέχει στο ίδιο μηχάνημα με Docker, συνήθως είναι localhost
+        SPRING_DATASOURCE_URL: "jdbc:postgresql://localhost:5432/devops_db"
+        SPRING_DATASOURCE_USERNAME: "dbuser"
+        SPRING_DATASOURCE_PASSWORD: "pass123"
+        # Πρόσθεσε εδώ ό,τι άλλο χρειάζεται το application.properties σου
+
+    pre_tasks:
+      - name: Install java
+        apt:
+          name: openjdk-21-jdk
+          state: present
+          update_cache: yes
+        become: yes
+        tags:
+          - install
+    
+    tasks:
+
+      - name: Ensure git is installed
+        apt:
+          name: git
+          state: present
+        become: yes
+        tags:
+          - install
+
+      - name: Clone git repo
+        git:
+          repo: https://github.com/klewnk/project20205.git   # decided to use https instead of ssh, because it is a public repository and i wanted everyone to be able to run the playbook without needing to set up SSH keys
+          dest: "{{ app_dir }}"                                                 
+          version: "{{ branch }}"
+          accept_hostkey: yes
+          force: yes
+
+      # Changes variables in the application.properties file in order to communicate with the database, mailhog and minio
+      - name: Populate application.properties
+        lineinfile:
+          dest: "{{ app_dir }}/src/main/resources/application.properties"
+          state: present
+          regexp: "^{{item.key}}="
+          line: "{{item.key}}={{item.value}}"
+        with_items:
+          - "{{app.env | dict2items}}"
+        tags:
+          - edit
+
+        
+      - name: Build spring project
+        block:
+
+          - name: Ensure mvnw is executable
+            ansible.builtin.file:
+              path: "{{ app_dir }}/mvnw"
+              mode: "0755"  # Gives execute permissions (rwxr-xr-x)
+            tags:
+              - edit
+
+          - name: Build the Spring application
+            command: "./mvnw package -Dmaven.test.skip "
+            args:
+              chdir: "{{ app_dir }}"
+
+
+        rescue:
+
+          - name: Fetch the SHA-512 checksum for Maven 3.9.9
+            get_url:
+              url: https://downloads.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip.sha512
+              dest: /tmp/maven_sha512.txt
+              validate_certs: yes
+              force: yes
+
+          - name: Read the SHA-512 checksum from the file
+            command: cat /tmp/maven_sha512.txt
+            register: sha512_checksum
+
+          - name: Replace the distributionSha512Sum line in maven-wrapper.properties
+            replace:
+              path: "{{ app_dir }}/.mvn/wrapper/maven-wrapper.properties"
+              regexp: '^distributionSha'
+              replace: "distributionSha512Sum={{ sha512_checksum.stdout }}"
+            tags:
+              - edit
+            
+          - name: Clean up the temporary file
+            file:
+              path: /tmp/maven_sha512.txt
+              state: absent
+            when: sha512_checksum is defined
+            
+        always:
+          - name: Build the Spring application
+            command: "./mvnw package -Dmaven.test.skip "
+            args:
+              chdir: "{{ app_dir }}"
+
+
+      - name: Copy spring service file
+        template:
+          src: ../files/spring.j2
+          dest: "/etc/systemd/system/spring.service"
+        become: yes
+        become_user: root
+        notify: Restart spring
+
+      - name: Reload spring service
+        service:
+          name: spring
+          state: restarted
+        become: yes
+
+      - name: Ensure spring service started
+        service:
+          name: spring
+          state: started
+          enabled: yes
+        become: yes
+
+      - name: APT - install nginx
+        apt:
+          name: nginx
+          update_cache: yes
+        become: yes
+        tags:
+          - install
+
+      - name: Copy nginx conf file
+        template:
+          src: ../files/nginx.j2
+          dest: "/etc/nginx/sites-available/reverse_proxy"
+        become: yes
+        notify: Restart nginx
+
+      - name: Enable my site in nginx
+        file:
+          src: "/etc/nginx/sites-available/reverse_proxy"
+          dest: "/etc/nginx/sites-enabled/reverse_proxy"
+          state: link
+        become: yes
+        notify: Restart nginx
+
+      - name: De-activate default nginx site
+        file:
+          path: /etc/nginx/sites-enabled/default
+          state: absent
+        become: yes
+        notify: Restart nginx
+
+
+    handlers:
+      - name: Restart spring
+        service:
+          name: spring
+          state: restarted
+        become: yes
+
+      - name: Restart nginx
+        service:
+          name: nginx
+          state: restarted
+        become: yes

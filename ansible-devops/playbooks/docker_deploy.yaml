@@ -29,7 +29,7 @@
 
     - name: Clone git repo
       git:
-        # ΕΔΩ ΕΙΝΑΙ ΤΟ ΣΩΣΤΟ URL
+    
         repo: https://github.com/klewnk/DevOps-2026.git
         dest: "{{ repo_dir }}"
         version: "{{ branch }}"
