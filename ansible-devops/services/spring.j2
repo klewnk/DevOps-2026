@@ -1,12 +1,19 @@
 [Unit]
-Description=spring boot daemon
-After=network.target
+Description=Spring Boot Application
+After=syslog.target network.target
 
 [Service]
 User={{ app_user }}
-Group={{ group }}
-WorkingDirectory={{ service.app.workingdir }}
-ExecStart={{ service.app.execstart }}
+Group={{ app_user }}
+
+# Ορίζουμε τον φάκελο εργασίας
+WorkingDirectory={{ app_dir }}
+
+# Η εντολή εκκίνησης. 
+ExecStart=/usr/bin/java -jar {{ app_dir }}/target/project20205-0.0.1-SNAPSHOT.jar
+
+SuccessExitStatus=143
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
