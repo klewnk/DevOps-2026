@@ -9,7 +9,7 @@ pipeline {
         
         // IPs των VMs
         AZURE_IP = '20.208.128.155'
-        GCLOUD_IP = '34.51.245.90'
+        GCLOUD_IP = '34.51.255.13'
     }
 
     stages {
