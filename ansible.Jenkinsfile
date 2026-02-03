@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        // Ορίζουμε ότι η Ansible θα χρησιμοποιεί το τοπικό config
+        // Ορίζουμε το config path για να μην το γράφουμε συνέχεια
         ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Κατεβάζει τον κώδικα από το Git repository [cite: 14, 17]
+                // Κατεβάζει τον κώδικα από το Git
                 checkout scm
             }
         }
@@ -17,42 +17,41 @@ pipeline {
         stage('Inventory Connectivity Check') {
             steps {
                 script {
-                    echo "Checking connectivity to Google Cloud VM..."
-                    // Χρησιμοποιεί το γκρουπ 'googlevms' από το hosts.yaml σου
+                    echo "Testing connection to Google Cloud VM..."
+                    // Δοκιμάζει αν το devops_gcloud1 απαντάει (χρησιμοποιώντας το host_vars)
                     sh "ansible googlevms -m ping -i host.yaml"
                 }
             }
         }
 
-        stage('Install Docker on GCloud') {
+        stage('Install Docker') {
             steps {
                 script {
-                    echo "Starting Docker installation via Ansible..."
-                    // Εκτελεί το κύριο playbook. 
-                    // Το ansible.cfg θα βρει αυτόματα το hosts.yaml [cite: 43]
-
-                    
-                      sh "ansible-playbook -i host.yaml ansible-devops/playbooks/docker_deploy.yaml"
-                    
+                    echo "Running Docker Installation Playbook..."
+                    // Τρέχει το playbook σου
+                    sh "ansible-playbook -i host.yaml ansible-devops/playbooks/docker_deploy.yaml"
                 }
             }
         }
 
-        stage('Verify Docker Installation') {
+        stage('Verify Installation') {
             steps {
                 script {
-                    echo "Verifying Docker versions on remote host..."
-                    // Επιβεβαίωση ότι το docker και το compose είναι έτοιμα [cite: 18, 21, 26]
-                    sh "ansible googlevms -a 'docker --version'"
-                    sh "ansible googlevms -a 'docker compose version'"
+                    echo "Verifying Docker version on Remote VM..."
+                    // Επιβεβαιώνει ότι το Docker εγκαταστάθηκε όντως
+                    sh "ansible googlevms -a 'docker --version' -i host.yaml"
+                    sh "ansible googlevms -a 'docker compose version' -i host.yaml"
                 }
             }
         }
     }
-    
+
     post {
-        always {
-            echo "Pipeline finished."
+        success {
+            echo "Deployment and Verification Successful!"
+        }
+        failure {
+            echo "Pipeline failed. Check the logs above."
         }
     }
 }
