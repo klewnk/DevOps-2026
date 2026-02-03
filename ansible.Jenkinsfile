@@ -32,7 +32,7 @@ pipeline {
                     // Το ansible.cfg θα βρει αυτόματα το hosts.yaml [cite: 43]
 
                     dir('ansible-devops/playbooks') {
-                      sh "ansible-playbook deploy_docker.yaml"
+                      sh "ansible-playbook docker_deploy.yaml"
                     }
                 }
             }
