@@ -19,7 +19,7 @@ pipeline {
                 script {
                     echo "Testing connection to Google Cloud VM..."
                     // Δοκιμάζει αν το devops_gcloud1 απαντάει (χρησιμοποιώντας το host_vars)
-                    sh "ansible googlevms -m ping -i host.yaml"
+                    sh "ansible googlevms -m ping -i hosts.yaml"
                 }
             }
         }
@@ -29,7 +29,7 @@ pipeline {
                 script {
                     echo "Running Docker Installation Playbook..."
                     // Τρέχει το playbook σου
-                    sh "ansible-playbook -i host.yaml ansible-devops/playbooks/docker_deploy.yaml"
+                    sh "ansible-playbook -i hosts.yaml ansible-devops/playbooks/docker_deploy.yaml"
                 }
             }
         }
@@ -39,8 +39,8 @@ pipeline {
                 script {
                     echo "Verifying Docker version on Remote VM..."
                     // Επιβεβαιώνει ότι το Docker εγκαταστάθηκε όντως
-                    sh "ansible googlevms -a 'docker --version' -i host.yaml"
-                    sh "ansible googlevms -a 'docker compose version' -i host.yaml"
+                    sh "ansible googlevms -a 'docker --version' -i hosts.yaml"
+                    sh "ansible googlevms -a 'docker compose version' -i hosts.yaml"
                 }
             }
         }
