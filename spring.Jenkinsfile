@@ -28,7 +28,7 @@ pipeline {
             steps {
                 // Τρέχουμε το playbook χρησιμοποιώντας το inventory που φτιάξαμε
                 // Σιγουρέψου ότι το αρχείο λέγεται spring.yaml στο repo σου!
-                sh 'ansible-playbook -i inventory.ini spring.yaml'
+                sh 'ansible-playbook -i inventory.ini ansible-devops/playbooks/spring.yaml'
             }
         }
     }
