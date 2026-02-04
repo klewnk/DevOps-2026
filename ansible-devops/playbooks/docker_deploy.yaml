@@ -3,9 +3,19 @@
   hosts: all
   become: yes
   vars:
-    repo_dir: "/home/kleonkola/DevOps-2026" # Χρησιμοποιούμε το απόλυτο path σου
+    repo_dir: "/home/kleonkola/DevOps-2026"
 
   tasks:
+    # ΠΡΟΣΘΗΚΗ: Κλείνουμε τα παλιά services για να ελευθερωθούν οι πόρτες (1025, 5432)
+    - name: Stop native services to free ports
+      service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - postgresql
+        - mailhog
+      ignore_errors: yes
+
     - name: Clone git repo
       git:
         repo: https://github.com/klewnk/DevOps-2026.git
@@ -15,12 +25,11 @@
         recursive: no
         update: yes
 
-    # ΠΡΟΣΘΗΚΗ: Login για να μπορεί να κατεβάσει το image
     - name: Log into GitHub Container Registry
       docker_login:
         registry: ghcr.io
         username: klewnk
-        password: "{{ lookup('env', 'DOCKER_TOKEN') }}" 
+        password: "{{ lookup('env', 'DOCKER_TOKEN') }}"
       ignore_errors: yes
 
     - name: Stop any existing containers
@@ -33,4 +42,3 @@
         project_src: "{{ repo_dir }}"
         state: present
         pull: always
-        build: always
