@@ -3,10 +3,15 @@ Description=MailHog service
 After=network.target
 
 [Service]
+# Χρησιμοποιούμε το user που ορίσαμε (kleonkola)
 User={{ user }}
-Group={{ group }}
-WorkingDirectory={{ service.mailhog.workingdir }}
-ExecStart={{ service.mailhog.execstart }}
+# Αν δεν έχεις ορίσει group, βάζουμε πάλι το user (συνήθως είναι το ίδιο)
+Group={{ user }}
+# Ο φάκελος που φτιάξαμε στο /opt
+WorkingDirectory={{ mailhog_path }}
+# Η διαδρομή του εκτελέσιμου που κατεβάσαμε
+ExecStart={{ mailhog_path }}/MailHog
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
