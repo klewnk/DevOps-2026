@@ -8,7 +8,8 @@
       mailhog_path: "/opt/mailhog"
       smtp_port: 1025
       public_ip: "127.0.0.1"
-      
+      user: "kleonkola" #username tou vm
+
     tasks:
 
       - name: Create a directory
