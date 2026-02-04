@@ -9,12 +9,15 @@ pipeline {
         }
 
         stage('Build & Deploy with Ansible') {
-            steps {
-                sshagent(['gcloud-ssh-key']) {
-              sh 'ansible-playbook -i ansible-devops/inventory.ini ansible-devops/playbooks/docker_deploy.yaml'
-               }
+    steps {
+        sshagent(['gcloud-ssh-key']) {
+            // Προσθέτουμε το DOCKER_TOKEN στο environment της εντολής
+            withCredentials([string(credentialsId: 'docker-push-secret', variable: 'DOCKER_TOKEN')]) {
+                sh "DOCKER_TOKEN=${DOCKER_TOKEN} ansible-playbook -i ansible-devops/inventory.ini ansible-devops/playbooks/docker_deploy.yaml"
             }
         }
+    }
+}
     }
     
     post {
