@@ -1,54 +1,46 @@
 services:
+  # 1. ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ
   db:
-    image: postgres:16
-   # expose:
-    #  - "5433:5432"  
+    image: postgres:15
+    container_name: postgres_container
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
-       - POSTGRES_USER=dbuser
-       - POSTGRES_PASSWORD=pass123
-       - POSTGRES_DB=devops_db
-
-    healthcheck:
-
-      test: 
-       - CMD-SHELL
-       - pg_isready -U dbuser
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 30s
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=pass123
+      - POSTGRES_DB=devops_db
     volumes:
-      - 'dslabdb:/var/lib/postgresql/data/'
+      - pgdata_docker:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  spring:
-      image: ghcr.io/klewnk/spring-app:latest # Χρησιμοποίησε το πλήρες όνομα του image  #   image: db
-      # build: ... (μπορείς να το σβήσεις στο VM, το build γίνεται στον Jenkins)
-      build:
-        context: .
-        dockerfile: nonroot-multistage.Dockerfile
-      ports:
-       - "8080:8080"
-      depends_on:
-        db:
-          condition: service_healthy 
-      environment:
-        - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/devops_db
-        - SPRING_DATASOURCE_USERNAME=dbuser
-        - SPRING_DATASOURCE_PASSWORD=pass123
-      healthcheck:
-         test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-         interval: 30s
-         timeout: 30s
-         retries: 3
-
-
+  # 2. EMAIL SERVER (MailHog)
   mailhog:
-    image: mailhog/mailhog:latest
+    image: mailhog/mailhog
+    container_name: mailhog_container
     ports:
-      - "1025:1025" # SMTP port 
+      - "1025:1025" # SMTP
       - "8025:8025" # Web UI
-      
+
+  # 3. Η ΕΦΑΡΜΟΓΗ 
+  app:
+    image: ghcr.io/klewnk/spring-app:latest
+    container_name: spring_app_container
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Προσοχή: Εδώ συνδεόμαστε στο "db" και στο "mailhog", όχι στο localhost
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/devops_db
+      - SPRING_DATASOURCE_USERNAME=dbuser
+      - SPRING_DATASOURCE_PASSWORD=pass123
+      - SPRING_MAIL_HOST=mailhog
+      - SPRING_MAIL_PORT=1025
+
 volumes:
-  dslabdb:
+  pgdata_docker:

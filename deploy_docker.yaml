@@ -1,0 +1,68 @@
+---
+- name: Deploy Full Stack with Docker Compose
+  hosts: all
+  become: yes
+  vars:
+    # Ορίζουμε το project directory στο server
+    project_dir: "/home/{{ ansible_user }}/docker_project"
+
+  tasks:
+    # --- 1. ΚΑΘΑΡΙΣΜΟΣ (Clean up Native Services) ---
+    - name: Stop Native Spring Service (if running)
+      service:
+        name: spring
+        state: stopped
+      ignore_errors: yes
+
+    - name: Stop Native Postgres Service (if running)
+      service:
+        name: postgresql
+        state: stopped
+      ignore_errors: yes
+
+    - name: Force kill ports 8080 and 5432 (Zombie cleanup)
+      shell: "fuser -k 8080/tcp; fuser -k 5432/tcp"
+      ignore_errors: yes
+
+    # --- 2. ΕΓΚΑΤΑΣΤΑΣΗ DOCKER ---
+    - name: Install Docker dependencies
+      apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+          - psmisc # Για το fuser
+        state: present
+        update_cache: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    # --- 3. ΠΡΟΕΤΟΙΜΑΣΙΑ ΦΑΚΕΛΩΝ ---
+    - name: Create project directory
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    # --- 4. ΜΕΤΑΦΟΡΑ ΑΡΧΕΙΩΝ ---
+    - name: Copy docker-compose file
+      copy:
+        src: ../../docker-compose.yaml
+        dest: "{{ project_dir }}/docker-compose.yaml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    # --- 5. ΕΚΤΕΛΕΣΗ (DEPLOY) ---
+    - name: Login to GitHub Container Registry
+      # Χρησιμοποιούμε το token που στείλαμε από το Jenkins
+      shell: "echo {{ docker_token }} | docker login ghcr.io -u klewnk --password-stdin"
+      no_log: true 
+
+    - name: Docker Compose Up (Pull and Start)
+      shell: "docker compose pull && docker compose up -d"
+      args:
+        chdir: "{{ project_dir }}"
