@@ -10,9 +10,9 @@ pipeline {
 
         stage('Build & Deploy with Ansible') {
             steps {
-                // Εδώ καλούμε το ansible-playbook
-                // Προσοχή: Το path πρέπει να είναι αυτό που έχεις στο VM σου
-                sh 'ansible-playbook -i ansible-devops/inventory.ini ansible-devops/playbooks/docker_deploy.yaml'
+                sshagent(['gcloud-ssh-key']) {
+              sh 'ansible-playbook -i ansible-devops/inventory.ini ansible-devops/playbooks/docker_deploy.yaml'
+               }
             }
         }
     }
