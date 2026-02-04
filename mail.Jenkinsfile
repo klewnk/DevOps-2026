@@ -2,38 +2,58 @@ pipeline {
     agent any
 
     environment {
-        INVENTORY_PATH = "${WORKSPACE}/ansible-devops/inventory.ini"
+        // GitHub Container Registry
+        DOCKER_TOKEN = credentials('github-token') // Το ID από Jenkins Credentials
+        DOCKER_USER = 'klewnk'
+        DOCKER_SERVER = 'ghcr.io'
+        DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/mailhog"
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Docker Build and Push') {
             steps {
-                checkout scm
-            }
-        }
-
-        stage('Deploy MailHog via Ansible') {
-            steps {
+                sh '''
+                # Δημιουργία Tag με βάση το Commit και το Build ID
+                HEAD_COMMIT=$(git rev-parse --short HEAD)
+                TAG=$HEAD_COMMIT-$BUILD_ID
                 
-                withCredentials([sshUserPrivateKey(credentialsId: 'id_devops_key', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
-                    sh """
-                        chmod 600 ${SSH_KEY}
-                        
-                        # Εκτέλεση του Ansible Playbook
-                        ansible-playbook -i ${INVENTORY_PATH} \
-                        ansible-devops/playbooks/mailhog_playbook.yaml \
-                        --private-key=${SSH_KEY} \
-                        --ssh-common-args='-o StrictHostKeyChecking=no' \
-                        --user kleonkola
-                    """
-                }
+                # Build χρησιμοποιώντας Dockerfile
+                docker build --rm -t $DOCKER_PREFIX:$TAG -t $DOCKER_PREFIX:latest -f mail.Dockerfile .
+                
+                # Login και Push στο GHCR
+                echo $DOCKER_TOKEN | docker login $DOCKER_SERVER -u $DOCKER_USER --password-stdin
+                docker push $DOCKER_PREFIX --all-tags
+                '''
             }
         }
 
-        stage('Verify MailHog') {
+        stage('Pull and Run Test') {
             steps {
+                sh '''
+                docker pull $DOCKER_PREFIX:latest
+                echo "Starting temporary container for testing..."
+                docker run -d --name test-mailhog -p 8025:8025 $DOCKER_PREFIX:latest
+                '''
+            }
+        }
 
-                sh 'curl -I http://34.51.255.13:8025 || echo "MailHog UI is up"'
+        stage('Test Component') {
+            steps {
+                sh '''
+                sleep 5
+                echo "Checking if Mailhog UI responds..."
+                curl --fail http://localhost:8025 || exit 1
+                '''
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh '''
+                echo "Cleaning up test container..."
+                docker stop test-mailhog || true
+                docker rm -f test-mailhog || true
+                '''
             }
         }
     }
@@ -43,8 +63,8 @@ pipeline {
             mail(
                 to: 'it2022041@hua.gr',
                 from: 'it2022041@hua.gr',
-                body: "Project ${env.JOB_NAME} <br> Build status ${currentBuild.currentResult} <br> Build Number: ${env.BUILD_NUMBER}", 
-                subject: "JENKINS: MailHog Deploy -> ${currentBuild.currentResult}",
+                body: "Mailhog Build status: ${currentBuild.currentResult}",
+                subject: "JENKINS: Mailhog Component Build",
                 mimeType: 'text/html'
             )
         }
