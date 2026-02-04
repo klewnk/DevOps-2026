@@ -13,32 +13,22 @@ pipeline {
             }
         }
 
-        stage('Test connection to deploy env') {
+        stage('Infra Setup (Docker)') {
             steps {
                 script {
-                    echo 'Testing connectivity...'
-                    sh 'ansible -i ansible-devops/hosts.yaml devops_gcloud1 -m ping'
+                    echo 'Εγκατάσταση Docker και προετοιμασία περιβάλλοντος...'
+                    // Τρέχει το playbook που περιέχει το include_tasks: docker.yaml
+                    sh 'ansible-playbook -i ansible-devops/hosts.yaml ansible-devops/playbooks/docker_deploy.yaml --tags "install"'
                 }
             }
         }
 
-        stage('Install Docker on GCloud') {
+        stage('Deploy Application (Containers)') {
             steps {
                 script {
-                    echo 'Deploying Docker...'
-
-                    sh 'ansible-playbook -i ansible-devops/hosts.yaml ansible-devops/playbooks/docker_deploy.yaml'
-                }
-            }
-        }
-
-        stage('Verify Installation') {
-            steps {
-                script {
-                    echo 'Verifying Docker version...'
-                    
-                    sh "ansible -i ansible-devops/hosts.yaml devops_gcloud1 -a 'docker --version'"
-                    sh "ansible -i ansible-devops/hosts.yaml devops_gcloud1 -a 'docker compose version'"
+                    echo 'Εκκίνηση εφαρμογής με Docker Compose...'
+                    // Τρέχει ΜΟΝΟ το κομμάτι του deployment
+                    sh 'ansible-playbook -i ansible-devops/hosts.yaml ansible-devops/playbooks/docker_deploy.yaml --tags "deploy"'
                 }
             }
         }
