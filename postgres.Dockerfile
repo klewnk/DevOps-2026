@@ -1,0 +1,4 @@
+FROM postgres:13-alpine
+ENV POSTGRES_DB=mydb
+ENV POSTGRES_USER=kleonkola
+ENV POSTGRES_PASSWORD=pass12345

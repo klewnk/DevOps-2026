@@ -1,34 +1,40 @@
 pipeline {
     agent any
-
     environment {
-        // Το path για το inventory file
+        DOCKER_USER = 'klewnk'
+        DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/postgres-db"
         INVENTORY_PATH = "${WORKSPACE}/ansible-devops/inventory.ini"
     }
-
     stages {
-        stage('Checkout') {
+        stage('Docker Build & Push') {
             steps {
-                checkout scm
+                sh '''
+                docker build -t $DOCKER_PREFIX:latest -f postgres.Dockerfile .
+                # Εδώ υποθέτουμε ότι έχεις κάνει login στο GHCR ήδη
+                docker push $DOCKER_PREFIX:latest
+                '''
             }
         }
 
-        stage('Deploy Native DB') {
+        stage('Deploy via Ansible') {
             steps {
-                // Χρησιμοποιούμε withCredentials αντί για sshagent που δεν υπάρχει
-                withCredentials([sshUserPrivateKey(credentialsId: 'id_devops_key', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'id_devops_key', keyFileVariable: 'SSH_KEY')]) {
                     sh """
-                        # Ρυθμίζουμε τα δικαιώματα του κλειδιού (για ασφάλεια)
-                        chmod 600 \${SSH_KEY}
-
-                        # Τρέχουμε το Native Playbook
-                        # Περνάμε το κλειδί ρητά με το --private-key
+                        chmod 600 ${SSH_KEY}
                         ansible-playbook -i ${INVENTORY_PATH} ansible-devops/playbooks/postgres.yaml \
-                        --private-key=\${SSH_KEY} \
+                        --private-key=${SSH_KEY} \
                         --ssh-common-args='-o StrictHostKeyChecking=no' \
-                        --user kleonkola
+                        --user kleonkola \
+                        --extra-vars "image_name=$DOCKER_PREFIX:latest"
                     """
                 }
+            }
+        }
+        
+        stage('Verify Database Port') {
+            steps {
+                // Ελέγχουμε αν η πόρτα 5432 είναι ανοιχτή στο VM
+                sh 'nc -z -v 34.51.255.13 5432 || echo "Database is starting..."'
             }
         }
     }
