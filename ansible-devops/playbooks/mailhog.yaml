@@ -28,7 +28,7 @@
 
       - name: Copy mailhog service file
         template:
-          src: ../files/mailhog.service.j2
+          src: ../services/mailhog.j2
           dest: "/etc/systemd/system/mailhog.service"
         become: yes
         become_user: root
