@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body>
+<link rel="stylesheet" th:href="@{/css/style3.css}">
+
+<header class="masthead mb-auto" th:fragment="header">
+    <div class="inner">
+        <h3 class="masthead-brand">Cover</h3>
+        <nav class="nav nav-masthead justify-content-center">
+            <a class="nav-link" href="/" data-path="/">Home</a>
+            <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER', 'ROLE_RENTAL')" class="nav-link" href="/properties/list" data-path="/list">Properties</a>
+
+            <!-- Add Property & Applications - Μόνο για ROLE_ADMIN ή ROLE_OWNER -->
+            <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')" class="nav-link" href="/properties/add" data-path="/add">Add Property</a>
+            <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')" class="nav-link" href="/applications" data-path="/applications">Applications</a>
+
+            <!-- Admin Panel - Μόνο για ROLE_ADMIN -->
+            <a sec:authorize="hasRole('ROLE_ADMIN')" class="nav-link" href="/admin/admin-dashboard" data-path="/admin-dashboard">Admin Panel</a>
+
+            <!-- Users - Μόνο για ROLE_ADMIN -->
+            <a sec:authorize="hasRole('ROLE_ADMIN')" class="nav-link" href="/users">Users</a>
+
+            <!-- Login & Register για ΜΗ αυθεντικοποιημένους χρήστες -->
+            <span sec:authorize="!isAuthenticated()">
+        <a class="nav-link" href="/login">Login</a>
+        <a class="nav-link" href="/register">Register</a>
+      </span>
+
+            <!-- Sign Out για αυθεντικοποιημένους χρήστες -->
+            <span sec:authorize="isAuthenticated()">
+        <form th:action="@{/logout}" method="post" style="display: inline;">
+          <input type="submit" class="btn btn-primary" value="Sign Out"/>
+        </form>
+      </span>
+        </nav>
+    </div>
+</header>
+
+<script src="/js/jquery-slim.min.js"></script>
+<script src="/js/popper.min.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+

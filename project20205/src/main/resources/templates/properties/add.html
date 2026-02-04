@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Property</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/cover.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <!-- Scripts -->
+    <script src="/js/jquery-slim.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+
+</head>
+<body>
+
+<div class="container">
+    <h1>Add Property</h1>
+
+    <form action="/properties/add" method="post">
+        <!-- CSRF Token -->
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <!-- Title -->
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+        </div>
+
+        <!-- Address -->
+        <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" class="form-control" required>
+        </div>
+
+        <!-- Price -->
+        <div class="form-group">
+            <label for="price">Price</label>
+            <input type="number" step="10" id="price" name="price" class="form-control" value="100" min="100">
+        </div>
+
+        <!-- Rooms -->
+        <div class="form-group">
+            <label for="rooms">Rooms</label>
+            <input type="number" id="rooms" name="rooms" class="form-control" required min="1">
+        </div>
+
+        <!-- Bathrooms -->
+        <div class="form-group">
+            <label for="bathrooms">Bathrooms</label>
+            <input type="number" id="bathrooms" name="bathrooms" class="form-control" required min="1">
+        </div>
+
+        <!-- Square Meters -->
+        <div class="form-group">
+            <label for="squareMeters">Square Meters</label>
+            <input type="number" id="squareMeters" name="squareMeters" class="form-control" value="20" min="20">
+        </div>
+
+        <!-- Construction Year -->
+        <div class="form-group">
+            <label for="constructionYear">Construction Year</label>
+            <input type="number" id="constructionYear" name="constructionYear" class="form-control" value="1950" min="1950">
+        </div>
+
+        <!-- Property Type -->
+        <div class="form-group">
+            <label for="propertyType">Property Type</label>
+            <select id="propertyType" name="propertyType" class="form-control">
+                <option value="Apartment">Apartment</option>
+                <option value="House">House</option>
+                <option value="Villa">Villa</option>
+                <option value="Loft">Loft</option>
+            </select>
+        </div>
+
+        <!-- Features -->
+        <div class="form-group">
+            <label for="hasGarden">Has Garden</label>
+            <select id="hasGarden" name="hasGarden" class="form-control">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="hasBalcony">Has Balcony</label>
+            <select id="hasBalcony" name="hasBalcony" class="form-control">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="hasStorage">Has Storage</label>
+            <select id="hasStorage" name="hasStorage" class="form-control">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="hasParking">Has Parking</label>
+            <select id="hasParking" name="hasParking" class="form-control">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary mt-3">Add Property</button>
+    </form>
+</div>
+
+</body>
+</html>

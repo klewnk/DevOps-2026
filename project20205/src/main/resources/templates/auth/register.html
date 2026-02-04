@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{page_layout/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <script>
+        function validatePassword() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirmPassword").value;
+            var errorMessage = document.getElementById("passwordError");
+
+            if (password !== confirmPassword) {
+                errorMessage.textContent = "Passwords do not match!";
+                return false;
+            } else {
+                errorMessage.textContent = "";
+                return true;
+            }
+        }
+    </script>
+</head>
+<body>
+<div layout:fragment="main-content">
+    <div th:if="${param.error}">
+        Invalid username and password.
+    </div>
+    <h3>User Registration</h3>
+    <form th:action="@{/saveUser}" method="post" th:object="${user}" onsubmit="return validatePassword()">
+        <div class="form-group row">
+            <label for="username"> User Name</label>
+            <input type="text" class="form-control" th:field="*{username}" id="username"/>
+        </div>
+        <div class="form-group row">
+            <label for="email"> Email</label>
+            <input type="text" class="form-control" th:field="*{email}" id="email"/>
+        </div>
+        <div class="form-group row">
+            <label for="password"> Password </label>
+            <input type="password" class="form-control" id="password" th:field="*{password}"/>
+        </div>
+        <div class="form-group row">
+            <label for="confirmPassword"> Confirm Password </label>
+            <input type="password" class="form-control" id="confirmPassword"/>
+        </div>
+        <div id="passwordError" style="color: red;"></div>
+        <div><input type="submit" class="btn btn-primary" value="Sign Up"/></div>
+    </form>
+    <div th:text="${msg}"></div>
+</div>
+</body>
+</html>

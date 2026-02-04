@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Property Details</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/cover.css">
+</head>
+<body>
+<div class="container mt-5">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <h1>Property Details</h1>
+    <div>
+        <strong>Title:</strong> <span th:text="${property.title}"></span>
+    </div>
+    <div>
+        <strong>Description:</strong> <span th:text="${property.description}"></span>
+    </div>
+    <div>
+        <strong>Address:</strong> <span th:text="${property.address}"></span>
+    </div>
+    <div>
+        <strong>Price:</strong> <span th:text="${property.price}"></span>
+    </div>
+    <div>
+        <strong>Rooms:</strong> <span th:text="${property.rooms}"></span>
+    </div>
+    <div>
+        <strong>Bathrooms:</strong> <span th:text="${property.bathrooms}"></span>
+    </div>
+    <div>
+        <strong>Square Meters:</strong> <span th:text="${property.squareMeters}"></span>
+    </div>
+    <div>
+        <strong>Construction Year:</strong> <span th:text="${property.constructionYear}"></span>
+    </div>
+    <div>
+        <strong>Property Type:</strong> <span th:text="${property.propertyType}"></span>
+    </div>
+    <div>
+        <strong>Has Garden:</strong> <span th:text="${property.hasGarden ? 'Yes' : 'No'}"></span>
+    </div>
+    <div>
+        <strong>Has Balcony:</strong> <span th:text="${property.hasBalcony ? 'Yes' : 'No'}"></span>
+    </div>
+    <div>
+        <strong>Has Storage:</strong> <span th:text="${property.hasStorage ? 'Yes' : 'No'}"></span>
+    </div>
+    <div>
+        <strong>Has Parking:</strong> <span th:text="${property.hasParking ? 'Yes' : 'No'}"></span>
+    </div>
+
+    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+
+</div>
+
+<script src="/js/jquery-slim.min.js"></script>
+<script src="/js/popper.min.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

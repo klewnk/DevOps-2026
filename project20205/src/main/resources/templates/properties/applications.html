@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Rental Applications</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body>
+<link rel="stylesheet" th:href="@{/css/style.css}">
+<link rel="stylesheet" th:href="@{/css/style2.css}">
+
+<div class="container">
+    <h1 class="text-center">Rental Applications</h1>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Όνομα</th>
+            <th>Επίθετο</th>
+            <th>Email</th>
+            <th>Τηλέφωνο</th>
+            <th>Property ID</th>
+            <th>Ενέργειες</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="app : ${applications}">
+            <td th:text="${app.id}"></td>
+            <td th:text="${app.firstName}"></td>
+            <td th:text="${app.lastName}"></td>
+            <td th:text="${app.email}"></td>
+            <td th:text="${app.phone}"></td>
+            <td th:text="${app.property?.id ?: 'N/A'}"></td>
+            <td>
+                <form th:action="@{/admin/delete-application/{id}(id=${app.id})}" method="post">
+                    <button type="submit" class="btn btn-danger">Reject Application</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+
+    </table>
+    <a href="/" class="btn btn-primary mt-3">Back to Home</a>
+</div>
+</body>
+</html>

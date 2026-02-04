@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/cover.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <script src="/js/jquery-slim.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">Admin Dashboard</h1>
+    <p class="text-center">Choose one of the actions below:</p>
+
+    <div class="d-flex justify-content-center mt-4">
+        <a href="/admin/pending-properties" class="btn btn-primary mx-2">Pending Properties</a>
+        <a href="/admin/manage-properties" class="btn btn-secondary mx-2">Manage Properties</a>
+    </div>
+    <a href="/" class="btn btn-primary mt-3">Back to Home</a>
+</div>
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

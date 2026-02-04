@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Montserrat:wght@600&display=swap');
+
+label {
+    display: block !important;
+    font-weight: bold;
+    color: #222 !important;
+    margin-bottom: 5px;
+}
+
+body {
+    background-color: #f4f4f4;
+    color: #222;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    height: 100vh;
+}
+
+
+.content {
+    position: relative;
+    z-index: 1;
+}
+
+h1 {
+    font-size: 4rem;
+    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #111;
+}
+
+.nav-link {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 10px 15px;
+    color: #333;
+    transition: 0.3s ease-in-out;
+}
+
+.nav-link:hover {
+    color: #555;
+    transform: scale(1.1);
+}
+
+.btn-primary {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    font-size: 1rem;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+    border-radius: 5px;
+}
+
+.btn-primary:hover {
+    background-color: #555;
+    color: white;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 3rem;
+    }
+    .nav-link {
+        font-size: 1rem;
+    }
+}
