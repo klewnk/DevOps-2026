@@ -1,0 +1,4 @@
+# main_deploy.yaml
+- import_playbook: postgres.yaml  
+- import_playbook: mailhog.yaml   
+- import_playbook: spring.yaml    
