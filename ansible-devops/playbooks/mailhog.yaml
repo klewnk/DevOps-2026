@@ -12,6 +12,13 @@
 
     tasks:
 
+      - name: Stop any docker containers using MailHog ports
+        shell: "docker stop $(docker ps -q --filter 'ancestor=mailhog/mailhog') || true"
+        become: yes
+        failed_when: false
+       
+
+
       - name: Create a directory
         file:
            path: "{{ mailhog_path }}"
