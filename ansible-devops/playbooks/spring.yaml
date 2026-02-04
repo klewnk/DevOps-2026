@@ -31,6 +31,20 @@
         - install
     
   tasks:
+
+    - name: Stop Spring Boot service if running
+      service:
+        name: spring
+        state: stopped
+      ignore_errors: yes  
+
+    
+    - name: Force kill anything stuck on port 8080
+      shell: "fuser -k 8080/tcp"
+      ignore_errors: yes  
+
+
+
     - name: Ensure git is installed
       apt:
         name: git
