@@ -3,7 +3,6 @@
   hosts: devops_gcloud1
   become: yes
   
-  # ΑΥΤΟ ΕΙΝΑΙ ΤΟ ΚΟΜΜΑΤΙ ΠΟΥ ΛΕΙΠΕΙ ΚΑΙ ΧΤΥΠΑΕΙ ΤΟ ΛΑΘΟΣ
   vars:
     repo_dir: "/home/{{ ansible_user_id }}/DevOps-2026"
     app_dir: "/home/{{ ansible_user_id }}/DevOps-2026"
@@ -13,6 +12,17 @@
         SERVER_PORT: "8080"
 
   tasks:
+
+
+    - name: Stop Native Services to free ports for Docker
+      service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - postgresql
+        - mailhog
+      ignore_errors: yes
+      become: yes
     - name: Ensure Docker is available
       shell: docker --version && docker compose version
       register: docker_version_result

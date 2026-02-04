@@ -1,8 +1,11 @@
+version: '3.8'
+
 services:
-  # 1. ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ
+  # 1. ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ (PostgreSQL)
   db:
     image: postgres:15
     container_name: postgres_container
+    restart: always
     ports:
       - "5432:5432"
     environment:
@@ -12,35 +15,48 @@ services:
     volumes:
       - pgdata_docker:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dbuser"]
+      test: ["CMD-SHELL", "pg_isready -U dbuser -d devops_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # 2. EMAIL SERVER (MailHog)
+  # 2. DATABASE UI (Adminer)
+  adminer:
+    image: adminer
+    container_name: adminer_container
+    restart: always
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+
+  # 3. EMAIL SERVER (MailHog)
   mailhog:
     image: mailhog/mailhog
     container_name: mailhog_container
+    restart: always
     ports:
       - "1025:1025" # SMTP
       - "8025:8025" # Web UI
 
-  # 3. Η ΕΦΑΡΜΟΓΗ 
+  # 4. Η SPRING ΕΦΑΡΜΟΓΗ
   app:
     image: ghcr.io/klewnk/spring-app:latest
     container_name: spring_app_container
+    restart: always
     ports:
       - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
     environment:
-      # Προσοχή: Εδώ συνδεόμαστε στο "db" και στο "mailhog", όχι στο localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/devops_db
       - SPRING_DATASOURCE_USERNAME=dbuser
       - SPRING_DATASOURCE_PASSWORD=pass123
       - SPRING_MAIL_HOST=mailhog
       - SPRING_MAIL_PORT=1025
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=false
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=false
 
 volumes:
   pgdata_docker:
