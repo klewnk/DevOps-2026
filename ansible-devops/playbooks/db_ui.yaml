@@ -1,0 +1,19 @@
+---
+- name: Install Adminer (Database UI)
+  hosts: devops_gcloud1
+  become: yes
+
+  tasks:
+    - name: Ensure Docker is installed (for Adminer)
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Run Adminer container
+      docker_container:
+        name: db_adminer
+        image: adminer
+        state: started
+        restart_policy: always
+        published_ports:
+          - "8081:8080"
