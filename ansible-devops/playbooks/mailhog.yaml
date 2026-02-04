@@ -1,7 +1,14 @@
 ---
   - name: Install Mailhog for email testing
     hosts: devops_gcloud1
+    become: yes
 
+    vars:
+      mailhog_version: "v1.0.1"
+      mailhog_path: "/opt/mailhog"
+      smtp_port: 1025
+      public_ip: "127.0.0.1"
+      
     tasks:
 
       - name: Create a directory

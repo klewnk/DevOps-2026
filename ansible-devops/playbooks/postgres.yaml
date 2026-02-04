@@ -1,6 +1,6 @@
 ---
 - name: Install and Setup PostgreSQL (Native VM Scenario)
-  hosts: all
+  hosts: devops_gcloud1
   become: yes
   vars:
     db_name: "devops_db"
