@@ -24,12 +24,30 @@
           - acl
         state: present
 
+    # Εγκαθιστούμε το psmisc για να έχουμε την εντολή 'fuser'
+    - name: Install psmisc (required for fuser command)
+      apt:
+        name: psmisc
+        state: present
+
+    # Σταματάμε επίσημα το service
+    - name: Ensure PostgreSQL service is stopped first
+      service:
+        name: postgresql
+        state: stopped
+
+    # ΣΚΟΤΩΝΟΥΜΕ ό,τι έχει απομείνει στη θύρα 5432
+    # Το "|| true" σημαίνει "αν δεν βρεις τίποτα να σκοτώσεις, μην βγάλεις error"
+    - name: Kill any process holding port 5432 (Force cleanup)
+      shell: "fuser -k 5432/tcp || true"
+      ignore_errors: yes
+
     - name: Ensure PostgreSQL service is started and enabled
       service:
         name: postgresql
         state: started
         enabled: yes
-        
+
     - name: Wait for PostgreSQL to be ready (Port 5432)
       wait_for:
         port: 5432
