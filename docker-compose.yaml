@@ -4,7 +4,6 @@ services:
     image: postgres:15
     container_name: postgres_container
     restart: always
-    # Δεν χρειάζεται ports αν δεν θέλεις να μπαίνεις από έξω με DBeaver
     environment:
       - POSTGRES_USER=dbuser
       - POSTGRES_PASSWORD=pass123
@@ -17,7 +16,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. Η SPRING ΕΦΑΡΜΟΓΗ
+  # SPRING ΕΦΑΡΜΟΓΗ
   app:
     image: ghcr.io/klewnk/spring-app:latest
     container_name: spring_app_container
@@ -62,8 +61,11 @@ services:
 
   # 5. EMAIL SERVER (MailHog)
   mailhog:
-    image: mailhog/mailhog
+    build: 
+      context: .
+      dockerfile: MailHog.Dockerfile
     container_name: mailhog_container
+    restart: always
     ports:
       - "8025:8025"
       - "1025:1025"
