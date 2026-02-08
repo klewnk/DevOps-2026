@@ -16,20 +16,20 @@
     # 4. Ρυθμίσεις εφαρμογής (Βάση + EMAIL)
     app:
       env:
-        SERVER_PORT: "8080"
+        "server.port": "8080"
         
         # Database Settings
-        SPRING_DATASOURCE_URL: "jdbc:postgresql://localhost:5432/devops_db"
-        SPRING_DATASOURCE_USERNAME: "dbuser"
-        SPRING_DATASOURCE_PASSWORD: "pass123"
+        "spring.datasource.url": "jdbc:postgresql://localhost:5432/devops_db"
+        "spring.datasource.username": "dbuser"
+        "spring.datasource.password": "pass123"
         
-        # Email Settings (MailHog) - ΕΔΩ ΗΤΑΝ ΤΟ ΛΑΘΟΣ ΠΡΙΝ
-        SPRING_MAIL_HOST: "127.0.0.1"    # Το κρίσιμο: 127.0.0.1 αντί για mailhog
-        SPRING_MAIL_PORT: "1025"
-        SPRING_MAIL_USERNAME: ""
-        SPRING_MAIL_PASSWORD: ""
-        SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
-        SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
+        # Email Settings 
+        "spring.mail.host": "127.0.0.1"
+        "spring.mail.port": "1025"
+        "spring.mail.username": ""
+        "spring.mail.password": ""
+        "spring.mail.properties.mail.smtp.auth": "false"
+        "spring.mail.properties.mail.smtp.starttls.enable": "false"
 
   pre_tasks:
     - name: Install java
