@@ -10,7 +10,7 @@
 
 
   tasks:
-  
+    # --- ΕΓΚΑΤΑΣΤΑΣΗ ---
     - name: Update apt cache
       apt:
         update_cache: yes
@@ -22,42 +22,34 @@
           - postgresql-contrib
           - python3-psycopg2
           - acl
+          - psmisc  # Για την εντολή fuser
         state: present
 
-    # Εγκαθιστούμε το psmisc για να έχουμε την εντολή 'fuser'
-    - name: Install psmisc (required for fuser command)
-      apt:
-        name: psmisc
-        state: present
-
-    # Σταματάμε επίσημα το service
+    # --- ΚΑΘΑΡΙΣΜΟΣ & ΕΚΚΙΝΗΣΗ ---
     - name: Ensure PostgreSQL service is stopped first
       service:
         name: postgresql
         state: stopped
 
-    # ΣΚΟΤΩΝΟΥΜΕ ό,τι έχει απομείνει στη θύρα 5432
-    # Το "|| true" σημαίνει "αν δεν βρεις τίποτα να σκοτώσεις, μην βγάλεις error"
-    - name: Kill any process holding port 5432 (Force cleanup)
+    - name: Kill any process holding port 5432
       shell: "fuser -k 5432/tcp || true"
       ignore_errors: yes
 
-    - name: Ensure PostgreSQL service is started and enabled
+    - name: Ensure PostgreSQL service is started
       service:
         name: postgresql
         state: started
         enabled: yes
 
-    - name: Wait for PostgreSQL to be ready (Port 5432)
+    - name: Wait for PostgreSQL to be ready
       wait_for:
         port: 5432
         host: 127.0.0.1
         state: started
         timeout: 30
-        delay: 2
-    # --- ΡΥΘΜΙΣΗ ΧΡΗΣΤΩΝ & ΒΑΣΗΣ ---
-    
-    - name: Create database user 'dbuser' with password
+
+    # --- ΔΗΜΙΟΥΡΓΙΑ ΒΑΣΗΣ & ΧΡΗΣΤΗ ---
+    - name: Create database user 'dbuser'
       community.postgresql.postgresql_user:
         name: "{{ db_user }}"
         password: "{{ db_password }}"
@@ -72,20 +64,29 @@
       become: yes
       become_user: postgres
 
-    # --- ΡΥΘΜΙΣΗ ΠΡΟΣΒΑΣΗΣ (Δυναμική εύρεση του αρχείου) ---
-
-    - name: Find pg_hba.conf path automatically
-      shell: find /etc/postgresql -name pg_hba.conf | head -n 1
-      register: pg_config_path
+    # --- ΡΥΘΜΙΣΕΙΣ ΔΙΚΤΥΟΥ (ΤΟ ΣΗΜΑΝΤΙΚΟ ΚΟΜΜΑΤΙ) ---
+    
+    - name: Find config file path
+      shell: find /etc/postgresql -name postgresql.conf | head -n 1
+      register: pg_conf_path
       changed_when: false
 
-    - name: Allow password authentication for localhost
+    - name: Configure PostgreSQL to listen on all addresses
+      lineinfile:
+        path: "{{ pg_conf_path.stdout }}"
+        regexp: "^#?listen_addresses ="
+        line: "listen_addresses = '*'"
+        state: present
+      become: yes
+      notify: Restart Postgres
+
+    - name: Allow connection from Docker (and everywhere)
       community.postgresql.postgresql_pg_hba:
-        dest: "{{ pg_config_path.stdout }}"  # Χρησιμοποιούμε το path που βρήκαμε
+        dest: "{{ pg_conf_path.stdout | replace('postgresql.conf', 'pg_hba.conf') }}"
         contype: host
         users: all
-        source: 127.0.0.1/32
-        method: scram-sha-256  # Πιο σύγχρονο από md5, δουλεύει το ίδιο
+        source: 0.0.0.0/0
+        method: scram-sha-256
         databases: all
       become: yes
       become_user: postgres

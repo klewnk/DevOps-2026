@@ -1,14 +1,36 @@
----
 - name: Install Adminer (Database UI)
   hosts: devops_gcloud1
   become: yes
 
   tasks:
-    - name: Ensure Docker is installed (for Adminer)
+    # Εγκατάσταση εργαλείων (αν δεν υπάρχουν)
+    - name: Ensure Docker and lsof are installed
       apt:
-        name: docker.io
+        name: 
+          - docker.io
+          - lsof  # για να βρούμε ποιος απασχολεί την πόρτα
         state: present
+        update_cache: yes
 
+    # Έλεγχος της πόρτας 8081
+    - name: Check if port 8081 is in use
+      shell: "lsof -t -i:8081 || true"
+      register: port_check_8081
+
+    # Σκότωμα της διεργασίας (αν υπάρχει)
+    - name: Kill process on port 8081 if exists
+      shell: "kill -9 {{ port_check_8081.stdout }}"
+      when: port_check_8081.stdout != ""
+      ignore_errors: yes  # Αν κλείσει μόνο του, να μην σκάσει το playbook
+
+    # Αφαίρεση του παλιού container 
+    - name: Remove old Adminer container if exists
+      docker_container:
+        name: db_adminer
+        state: absent
+        force_kill: yes
+
+    # Εκκίνηση του νέου Adminer
     - name: Run Adminer container
       docker_container:
         name: db_adminer

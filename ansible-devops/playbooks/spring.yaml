@@ -57,6 +57,7 @@
       shell: "fuser -k 8080/tcp"
       ignore_errors: yes 
 
+
     - name: Ensure git is installed
       apt:
         name: git
@@ -72,7 +73,6 @@
         accept_hostkey: yes
         force: yes
 
-    # --- ΔΙΟΡΘΩΣΗ 1: Χωρίς αυτό δεν γράφεται το αρχείο ρυθμίσεων ---
     - name: Fix permissions for app directory (Before Build)
       file:
         path: "{{ app_dir }}"
@@ -137,7 +137,7 @@
             args:
               chdir: "{{ app_dir }}"
 
-    # --- ΔΙΟΡΘΩΣΗ 2: Χωρίς αυτό το Service δεν έχει πρόσβαση στο .jar ---
+    # πρόσβαση στο .jar
     - name: Fix permissions - Give ownership to app user
       file:
         path: "{{ app_dir }}"
@@ -161,6 +161,10 @@
         name: spring
         state: started
         enabled: yes
+
+    - name: Force kill anything stuck on port 80 (Apache/Old Nginx)
+      shell: "fuser -k 80/tcp || true"
+      ignore_errors: yes
 
     - name: Install nginx
       apt:
