@@ -6,6 +6,27 @@
     repo_dir: "/home/kleonkola/DevOps-2026"
 
   tasks:
+
+
+
+    # 1. Πρώτα σταματάμε και αφαιρούμε τα παλιά containers του ίδιου project
+    - name: Stop and remove existing docker-compose containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ repo_dir }}"
+        state: absent
+
+    # 2. Καθαρίζουμε με το ζόρι τα ports (για native processes)
+    - name: Kill processes on conflict ports
+      shell: "fuser -k 8081/tcp 5432/tcp 8025/tcp || true"
+      ignore_errors: yes
+
+    # 3. Τώρα ξεκινάμε
+    - name: Start the containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ repo_dir }}"
+        state: present
+        pull: always
+        
     # ΠΡΟΣΘΗΚΗ: Κλείνουμε τα παλιά services για να ελευθερωθούν οι πόρτες (1025, 5432)
     - name: Stop native services to free ports
       service:
