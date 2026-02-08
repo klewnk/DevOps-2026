@@ -13,15 +13,17 @@
     # 3. Χρήστης (Χρησιμοποιείται και στο spring.j2)
     app_user: "kleonkola" 
 
-    # 4. Ρυθμίσεις εφαρμογής
+    # 4. Ρυθμίσεις εφαρμογής (Βάση + EMAIL)
     app:
       env:
         SERVER_PORT: "8080"
+        
+        # Database Settings
         SPRING_DATASOURCE_URL: "jdbc:postgresql://localhost:5432/devops_db"
         SPRING_DATASOURCE_USERNAME: "dbuser"
         SPRING_DATASOURCE_PASSWORD: "pass123"
-
-        # Email Settings (MailHog) 
+        
+        # Email Settings (MailHog) - ΕΔΩ ΗΤΑΝ ΤΟ ΛΑΘΟΣ ΠΡΙΝ
         SPRING_MAIL_HOST: "127.0.0.1"    # Το κρίσιμο: 127.0.0.1 αντί για mailhog
         SPRING_MAIL_PORT: "1025"
         SPRING_MAIL_USERNAME: ""
@@ -39,7 +41,6 @@
         - install
     
   tasks:
-
     - name: Install required system utilities
       apt:
         name: psmisc  # εντολή 'fuser'
@@ -56,8 +57,6 @@
       shell: "fuser -k 8080/tcp"
       ignore_errors: yes 
 
-
-
     - name: Ensure git is installed
       apt:
         name: git
@@ -72,6 +71,14 @@
         version: "{{ branch }}"
         accept_hostkey: yes
         force: yes
+
+    # --- ΔΙΟΡΘΩΣΗ 1: Χωρίς αυτό δεν γράφεται το αρχείο ρυθμίσεων ---
+    - name: Fix permissions for app directory (Before Build)
+      file:
+        path: "{{ app_dir }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        recurse: yes
 
     - name: Populate application.properties
       lineinfile:
@@ -129,6 +136,15 @@
             command: "./mvnw package -Dmaven.test.skip"
             args:
               chdir: "{{ app_dir }}"
+
+    # --- ΔΙΟΡΘΩΣΗ 2: Χωρίς αυτό το Service δεν έχει πρόσβαση στο .jar ---
+    - name: Fix permissions - Give ownership to app user
+      file:
+        path: "{{ app_dir }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        recurse: yes
+        state: directory
 
     - name: Copy spring service file
       template:
