@@ -29,7 +29,14 @@
         name: postgresql
         state: started
         enabled: yes
-
+        
+    - name: Wait for PostgreSQL to be ready (Port 5432)
+      wait_for:
+        port: 5432
+        host: 127.0.0.1
+        state: started
+        timeout: 30
+        delay: 2
     # --- ΡΥΘΜΙΣΗ ΧΡΗΣΤΩΝ & ΒΑΣΗΣ ---
     
     - name: Create database user 'dbuser' with password
