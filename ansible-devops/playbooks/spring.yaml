@@ -162,15 +162,14 @@
         state: started
         enabled: yes
 
-# Σταματάμε το Apache αν υπάρχει (port 80)
-    - name: Ensure Apache is stopped (to free port 80)
+    
+    - name: Ensure Apache is stopped (if installed)
       service:
         name: apache2
         state: stopped
-      ignore_errors: yes
+      ignore_errors: yes  # Αν δεν υπάρχει Apache, κανένα πρόβλημα
 
-    
-    - name: Ensure Nginx is stopped gracefully
+    - name: Ensure Nginx is stopped gracefully before config
       service:
         name: nginx
         state: stopped
