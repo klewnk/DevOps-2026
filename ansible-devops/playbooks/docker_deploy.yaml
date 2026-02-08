@@ -1,4 +1,3 @@
----
 - name: Install spring boot application in docker environment
   hosts: all
   become: yes
@@ -13,7 +12,7 @@
         name: psmisc
         state: present
 
-    - name: Stop native services (Postgres & Mailhog)
+    - name: Stop native services (Postgres, Mailhog, Nginx)
       service:
         name: "{{ item }}"
         state: stopped
@@ -21,13 +20,15 @@
       loop:
         - postgresql
         - mailhog
+        - nginx  # <--- ΠΡΟΣΘΗΚΗ: Για να ελευθερωθεί η πόρτα 80
       ignore_errors: yes
 
     - name: Remove specific conflicting container (db_adminer)
       shell: "docker stop db_adminer || true && docker rm db_adminer || true"
 
     - name: Force kill anything on our app ports
-      shell: "fuser -k 5432/tcp 8081/tcp 8025/tcp 1025/tcp || true"
+      # Προσθέσαμε την 80/tcp εδώ
+      shell: "fuser -k 80/tcp 5432/tcp 8081/tcp 8025/tcp 1025/tcp || true"
       ignore_errors: yes
 
     # --- ΦΑΣΗ 2: ΕΝΗΜΕΡΩΣΗ ΚΩΔΙΚΑ & REGISTRY ---
