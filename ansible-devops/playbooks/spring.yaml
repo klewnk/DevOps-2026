@@ -162,9 +162,20 @@
         state: started
         enabled: yes
 
-    - name: Force kill anything stuck on port 80 (Apache/Old Nginx)
-      shell: "fuser -k 80/tcp || true"
+# Σταματάμε το Apache αν υπάρχει (port 80)
+    - name: Ensure Apache is stopped (to free port 80)
+      service:
+        name: apache2
+        state: stopped
       ignore_errors: yes
+
+    
+    - name: Ensure Nginx is stopped gracefully
+      service:
+        name: nginx
+        state: stopped
+      ignore_errors: yes
+
 
     - name: Install nginx
       apt:
