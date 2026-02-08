@@ -37,8 +37,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=pass123
       - SPRING_MAIL_HOST=mailhog
       - SPRING_MAIL_PORT=1025
-    networks:         
-      - app-network
 
   # 3. REVERSE PROXY (Nginx) - Για την πόρτα 80
   web:
