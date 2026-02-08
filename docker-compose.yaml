@@ -28,6 +28,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+      mailhog: 
+        condition: service_started
+
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/devops_db
       - SPRING_DATASOURCE_USERNAME=dbuser
@@ -63,6 +67,12 @@ services:
     ports:
       - "8025:8025"
       - "1025:1025"
+    networks:
+      - app-network
 
 volumes:
   pgdata_docker:
+
+networks:
+  app-network:
+    driver: bridge
