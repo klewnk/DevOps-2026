@@ -21,6 +21,14 @@
         SPRING_DATASOURCE_USERNAME: "dbuser"
         SPRING_DATASOURCE_PASSWORD: "pass123"
 
+        # Email Settings (MailHog) 
+        SPRING_MAIL_HOST: "127.0.0.1"    # Το κρίσιμο: 127.0.0.1 αντί για mailhog
+        SPRING_MAIL_PORT: "1025"
+        SPRING_MAIL_USERNAME: ""
+        SPRING_MAIL_PASSWORD: ""
+        SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+        SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
+
   pre_tasks:
     - name: Install java
       apt:

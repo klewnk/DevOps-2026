@@ -7,17 +7,32 @@
       mailhog_version: "v1.0.1"
       mailhog_path: "/opt/mailhog"
       smtp_port: 1025
+      ui_port: 8025
       public_ip: "127.0.0.1"
-      user: "localhost" #username tou vm
+      user: "kleonkola" #username tou vm
 
     tasks:
+
+    # Εγκατάσταση εργαλείων (αν δεν υπάρχουν)
+      - name: Ensure required tools are installed
+        apt:
+          name: psmisc  # Χρειαζόμαστε το fuser
+          state: present
+          update_cache: yes
 
       - name: Stop any docker containers using MailHog ports
         shell: "docker stop $(docker ps -q --filter 'ancestor=mailhog/mailhog') || true"
         become: yes
         failed_when: false
-       
 
+    # Force Kill οτιδήποτε έχει "κολλήσει" στις πόρτες
+      - name: Force kill anything on SMTP port 1025
+        shell: "fuser -k {{ smtp_port }}/tcp"
+        ignore_errors: yes
+
+      - name: Force kill anything on UI port 8025
+        shell: "fuser -k {{ ui_port }}/tcp"
+        ignore_errors: yes
 
       - name: Create a directory
         file:
