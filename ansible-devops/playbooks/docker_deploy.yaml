@@ -16,6 +16,17 @@
         - mailhog
       ignore_errors: yes
 
+      # Ελευθερώνουμε τις πόρτες με το ζόρι
+    - name: Kill processes on conflict ports
+      shell: "fuser -k 8081/tcp 5432/tcp 8025/tcp || true"
+      ignore_errors: yes
+
+    - name: Start the containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ repo_dir }}"
+        state: present
+        pull: always
+
     - name: Clone git repo
       git:
         repo: https://github.com/klewnk/DevOps-2026.git
