@@ -63,7 +63,7 @@ services:
   mailhog:
     build: 
       context: .
-      dockerfile: MailHog.Dockerfile
+      dockerfile: Mail.Dockerfile
     container_name: mailhog_container
     restart: always
     ports:
