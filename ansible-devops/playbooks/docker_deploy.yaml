@@ -6,56 +6,38 @@
     repo_dir: "/home/kleonkola/DevOps-2026"
 
   tasks:
-
-
-
-    # 1. Πρώτα σταματάμε και αφαιρούμε τα παλιά containers του ίδιου project
-    - name: Stop and remove existing docker-compose containers
-      community.docker.docker_compose_v2:
-        project_src: "{{ repo_dir }}"
-        state: absent
-
-    # 2. Καθαρίζουμε με το ζόρι τα ports (για native processes)
-    - name: Kill processes on conflict ports
-      shell: "fuser -k 8081/tcp 5432/tcp 8025/tcp || true"
-      ignore_errors: yes
-
-    # 3. Τώρα ξεκινάμε
-    - name: Start the containers
-      community.docker.docker_compose_v2:
-        project_src: "{{ repo_dir }}"
+    # --- ΦΑΣΗ 1: ΠΡΟΕΤΟΙΜΑΣΙΑ & ΚΑΘΑΡΙΣΜΟΣ ---
+    
+    - name: Install psmisc (fuser)
+      apt:
+        name: psmisc
         state: present
-        pull: always
-        
-    # ΠΡΟΣΘΗΚΗ: Κλείνουμε τα παλιά services για να ελευθερωθούν οι πόρτες (1025, 5432)
-    - name: Stop native services to free ports
+
+    - name: Stop native services (Postgres & Mailhog)
       service:
         name: "{{ item }}"
         state: stopped
+        enabled: no
       loop:
         - postgresql
         - mailhog
       ignore_errors: yes
 
-      # Ελευθερώνουμε τις πόρτες με το ζόρι
-    - name: Kill processes on conflict ports
-      shell: "fuser -k 8081/tcp 5432/tcp 8025/tcp || true"
+    - name: Remove specific conflicting container (db_adminer)
+      shell: "docker stop db_adminer || true && docker rm db_adminer || true"
+
+    - name: Force kill anything on our app ports
+      shell: "fuser -k 5432/tcp 8081/tcp 8025/tcp 1025/tcp || true"
       ignore_errors: yes
 
-    - name: Start the containers
-      community.docker.docker_compose_v2:
-        project_src: "{{ repo_dir }}"
-        state: present
-        pull: always
+    # --- ΦΑΣΗ 2: ΕΝΗΜΕΡΩΣΗ ΚΩΔΙΚΑ & REGISTRY ---
 
-    - name: Clone git repo
+    - name: Clone or Update git repo
       git:
         repo: https://github.com/klewnk/DevOps-2026.git
         dest: "{{ repo_dir }}"
         version: main
         force: yes
-        recursive: no
-        update: yes
 
     - name: Log into GitHub Container Registry
       docker_login:
@@ -64,12 +46,14 @@
         password: "{{ lookup('env', 'DOCKER_TOKEN') }}"
       ignore_errors: yes
 
-    - name: Stop any existing containers
+    # --- ΦΑΣΗ 3: DEPLOYMENT ---
+
+    - name: Stop/Remove existing containers from this compose project
       community.docker.docker_compose_v2:
         project_src: "{{ repo_dir }}"
         state: absent
 
-    - name: Start the containers
+    - name: Final Start of the containers
       community.docker.docker_compose_v2:
         project_src: "{{ repo_dir }}"
         state: present
