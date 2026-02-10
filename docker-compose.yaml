@@ -83,22 +83,21 @@ services:
     networks:
       - app-network
 
-  # USER MANAGEMENT (Keycloak) -
   keycloak:
     build:
       context: .
       dockerfile: Keycloak.Dockerfile
     container_name: keycloak_container
-    restart: always
     environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
       - KC_HOSTNAME_STRICT=false
       - KC_HOSTNAME_STRICT_HTTPS=false
       - KC_HTTP_ENABLED=true
-      - KC_PROXY=edge # Αυτό βοηθάει πολύ αν χρησιμοποιείς IP
-    ports:
-      - "8180:8080"
+      - KC_PROXY=edge
+      - KC_HTTP_RELATIVE_PATH=/auth
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    # ΜΗΝ βάλεις ports: - "8180:8080" εδώ. 
+    # Θέλουμε όλο το traffic να περνάει ΜΟΝΟ από τον Nginx (port 80).
     networks:
       - app-network
 
