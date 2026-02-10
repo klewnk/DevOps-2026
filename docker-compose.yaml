@@ -81,6 +81,8 @@ services:
     environment:
       - KEYCLOAK_ADMIN=admin       # Username για το Admin Panel
       - KEYCLOAK_ADMIN_PASSWORD=admin # Password για το Admin Panel
+      - KC_HOSTNAME_STRICT_HTTPS=false
+
     ports:
       - "8180:8080" # http://IP:8180
     networks:
