@@ -70,6 +70,18 @@ services:
     networks:
       - app-network
 
+  user-management:
+    build:
+      context: .
+      dockerfile: pocketbase.Dockerfile
+    container_name: pocketbase_container
+    restart: always
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./pb_data:/pb/pb_data
+    networks:
+      - app-network
 
   # USER MANAGEMENT (Keycloak) -
   keycloak:
