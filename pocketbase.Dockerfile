@@ -1,19 +1,12 @@
 FROM alpine:latest
 
-# Ορίζουμε την έκδοση
-ARG PB_VERSION=0.22.0
+RUN apk add --no-cache unzip ca-certificates
 
-# Εγκατάσταση απαραίτητων εργαλείων
-RUN apk add --no-cache \
-    unzip \
-    ca-certificates
-
-# Κατέβασμα του PocketBase
-ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
+# Κατεβάζουμε το PocketBase
+ADD https://github.com/pocketbase/pocketbase/releases/download/v0.22.0/pocketbase_0.22.0_linux_amd64.zip /tmp/pb.zip
 RUN unzip /tmp/pb.zip -d /pb/
 
-# Εκθέτουμε τη θύρα 8090
 EXPOSE 8090
 
-# Εκκίνηση του server
+# Το τρέχουμε σε HTTP mode χωρίς περιορισμούς
 ENTRYPOINT ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090"]
