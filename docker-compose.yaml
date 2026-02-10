@@ -70,6 +70,26 @@ services:
     networks:
       - app-network
 
+
+
+  admin-dashboard:
+    build:
+      context: .
+      dockerfile: metabase.Dockerfile
+    container_name: metabase_container
+    restart: always
+    ports:
+      - "3001:3000" # Θα μπαίνεις από το http://34.51.255.13:3001
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=devops_db     # <--- Βάλε το όνομα της βάσης σου
+      - MB_DB_PORT=5432
+      - MB_DB_USER=dbuser            # <--- Το username της Postgres σου
+      - MB_DB_PASS=pass123        # <--- Το password της Postgres σου
+      - MB_DB_HOST=db              # Το όνομα του service της βάσης
+    networks:
+      - app-network
+
   user-management:
     build:
       context: .
