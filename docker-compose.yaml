@@ -70,6 +70,22 @@ services:
     networks:
       - app-network
 
+
+  # USER MANAGEMENT (Keycloak) -
+  keycloak:
+    build:
+      context: .
+      dockerfile: Keycloak.Dockerfile
+    container_name: keycloak_container
+    restart: always
+    environment:
+      - KEYCLOAK_ADMIN=admin       # Username για το Admin Panel
+      - KEYCLOAK_ADMIN_PASSWORD=admin # Password για το Admin Panel
+    ports:
+      - "8180:8080" # http://IP:8180
+    networks:
+      - app-network
+
 volumes:
   pgdata_docker:
 
