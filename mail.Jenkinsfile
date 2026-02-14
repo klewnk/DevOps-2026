@@ -50,16 +50,18 @@ pipeline {
         }
 
         stage('Production Deploy') {
-            steps {
-                // Χρησιμοποιούμε το docker compose για να ανανεώσουμε ΜΟΝΟ το mailhog
-                // και μετά κάνουμε restart τον nginx για να σιγουρευτούμε ότι "είδε" το νέο container
-                sh '''
-                docker compose pull mailhog
-                docker compose up -d mailhog
-                docker compose restart web
-                '''
-            }
-        }
+         steps {
+        sh '''
+        # Μπαίνουμε στον φάκελο που είναι το docker-compose.yaml
+        # Χρησιμοποιούμε το -p για να ορίσουμε σταθερό όνομα project
+        docker compose -p devops-2026 pull mailhog
+        docker compose -p devops-2026 up -d mailhog
+        
+        # Αναγκάζουμε τον Nginx να ξαναδιαβάσει το δίκτυο
+        docker compose -p devops-2026 restart web
+        '''
+    }
+   }
     }
 
     post {
