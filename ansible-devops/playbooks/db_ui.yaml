@@ -3,28 +3,24 @@
   become: yes
 
   tasks:
-    # Εγκατάσταση εργαλείων (αν δεν υπάρχουν)
-    - name: Ensure Docker and lsof are installed
+    - name: Ensure Docker and psmisc are installed
       apt:
         name: 
           - docker.io
-          - lsof  # για να βρούμε ποιος απασχολεί την πόρτα
+          - psmisc 
         state: present
         update_cache: yes
 
-    # Έλεγχος της πόρτας 8081
-    - name: Check if port 8081 is in use
-      shell: "lsof -t -i:8081 || true"
-      register: port_check_8081
+    # Πρώτα καθαρίζουμε τυχόν container που "κλειδώνει" την πόρτα
+    - name: Remove any container using port 8081
+      shell: "docker rm -f $(docker ps -q --filter 'publish=8081') || true"
 
-    # Σκότωμα της διεργασίας (αν υπάρχει)
-    - name: Kill process on port 8081 if exists
-      shell: "kill -9 {{ port_check_8081.stdout }}"
-      when: port_check_8081.stdout != ""
-      ignore_errors: yes  # Αν κλείσει μόνο του, να μην σκάσει το playbook
+    # Μετά σκοτώνουμε οποιαδήποτε άλλη "ορφανή" διεργασία στην 8081
+    - name: Force kill anything on port 8081
+      shell: "fuser -k 8081/tcp || true"
 
-    # Αφαίρεση του παλιού container 
-    - name: Remove old Adminer container if exists
+    # Αφαίρεση του Adminer container
+    - name: Remove old Adminer container by name
       docker_container:
         name: db_adminer
         state: absent
