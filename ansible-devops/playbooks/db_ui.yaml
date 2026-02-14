@@ -1,37 +1,34 @@
-- name: Install Adminer (Database UI)
+- name: Install Adminer Native (No Docker)
   hosts: devops_gcloud1
   become: yes
 
   tasks:
-    - name: Ensure Docker and psmisc are installed
+    - name: Install PHP and Postgres Driver
       apt:
-        name: 
-          - docker.io
-          - psmisc 
+        name:
+          - php-fpm
+          - php-pgsql
         state: present
         update_cache: yes
 
-    # Πρώτα καθαρίζουμε τυχόν container που "κλειδώνει" την πόρτα
-    - name: Remove any container using port 8081
-      shell: "docker rm -f $(docker ps -q --filter 'publish=8081') || true"
+    - name: Create Web Directory for Adminer
+      file:
+        path: /var/www/adminer
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
 
-    # Μετά σκοτώνουμε οποιαδήποτε άλλη "ορφανή" διεργασία στην 8081
-    - name: Force kill anything on port 8081
-      shell: "fuser -k 8081/tcp || true"
+    - name: Download Adminer PHP script
+      get_url:
+        url: https://www.adminer.org/latest.php
+        dest: /var/www/adminer/index.php
+        owner: www-data
+        group: www-data
+        mode: '0644'
 
-    # Αφαίρεση του Adminer container
-    - name: Remove old Adminer container by name
-      docker_container:
-        name: db_adminer
-        state: absent
-        force_kill: yes
-
-    # Εκκίνηση του νέου Adminer
-    - name: Run Adminer container
-      docker_container:
-        name: db_adminer
-        image: adminer
-        state: started
-        restart_policy: always
-        published_ports:
-          - "8081:8080"
+    - name: Stop and Cleanup old Docker Adminer
+      shell: |
+        docker rm -f db_adminer || true
+        fuser -k 8081/tcp || true
+      ignore_errors: yes
