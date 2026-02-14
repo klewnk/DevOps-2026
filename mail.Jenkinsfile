@@ -47,6 +47,17 @@ pipeline {
             }
         }
 
+        stage('Production Deploy') {
+    steps {
+        // Πηγαίνουμε εκεί που είναι το docker-compose.yml
+        // Και λέμε στο docker-compose να ανανεώσει ΜΟΝΟ το mailhog
+        sh '''
+        docker compose pull mailhog
+        docker compose up -d mailhog
+        '''
+    }
+}
+
         stage('Cleanup') {
             steps {
                 sh '''
