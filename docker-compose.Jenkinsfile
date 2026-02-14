@@ -11,31 +11,24 @@ pipeline {
         stage('Local Integration Test') {
             steps {
                 sh '''
-                echo "--- Καθαρισμός και έλεγχος θυρών ---"
-                # Σβήνουμε τα πάντα
+                echo "--- Καθαρισμός προηγούμενων δοκιμών ---"
                 docker compose -p jenkins-test down --volumes --remove-orphans || true
                 docker rm -f adminer_container postgres_container mailhog_container spring_app_container nginx_container || true
                 
-                # ΕΛΕΓΧΟΣ: Αν η πόρτα 80 είναι πιασμένη από 'native' Nginx, τον σταματάμε προσωρινά
-                sudo systemctl stop nginx || true 
-
-                echo "--- Σήκωμα Stack τοπικά για δοκιμή ---"
-                docker compose -p jenkins-test up -d
+                echo "--- Σήκωμα Stack στην πόρτα 8089 (on-the-fly) ---"
+                # Εδώ περνάμε την 8089 μόνο για το test
+                NGINX_PORT=8089 docker compose -p jenkins-test up -d
                 
                 echo "--- Αναμονή 30 δευτερολέπτων ---"
                 sleep 30
                 
-                echo "--- Έλεγχος επικοινωνίας ---"
-                # Δοκιμάζουμε στο localhost (αφού πλέον η 80 θα είναι του Docker)
-                curl --fail http://localhost:80 || (echo "❌ Test Failed!" && docker compose -p jenkins-test down && exit 1)
+                echo "--- Έλεγχος στην πόρτα 8089 ---"
+                curl --fail http://localhost:8089 || (echo "❌ Test Failed!" && NGINX_PORT=8089 docker compose -p jenkins-test down && exit 1)
                 
-                echo "✅ Όλα OK!"
+                echo "✅ Το Test πέρασε στην 8089!"
                 
                 echo "--- Cleanup ---"
-                docker compose -p jenkins-test down --volumes
-                
-                # Ξαναξεκινάμε τον κανονικό Nginx αν χρειάζεται
-                sudo systemctl start nginx || true
+                NGINX_PORT=8089 docker compose -p jenkins-test down --volumes
                 '''
             }
         }
