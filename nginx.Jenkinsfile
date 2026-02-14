@@ -17,13 +17,17 @@ pipeline {
                 '''
             }
         }
+                         
 
         stage('Health Check') {
             steps {
                 sh '''
-                echo "--- Έλεγχος αν ο Nginx απαντάει ---"
-                curl --fail http://localhost:8085 || (echo "❌ Ο Nginx δεν απαντάει!" && exit 1)
+                HOST_IP=$(ip route show | grep docker0 | awk '{print $9}')
+                echo "Testing on Host IP: $HOST_IP"
+                
+                curl --fail http://${HOST_IP}:8085 || (echo "❌ Failed to connect" && exit 1)
                 echo "✅ Ο Nginx λειτουργεί κανονικά."
+
                 '''
             }
         }
