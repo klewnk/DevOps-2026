@@ -47,15 +47,15 @@ pipeline {
             }
         }
 
-        stage('Production Deploy') {
+     stage('Production Deploy') {
     steps {
-        // Πηγαίνουμε εκεί που είναι το docker-compose.yml
-        // Και λέμε στο docker-compose να ανανεώσει ΜΟΝΟ το mailhog
+        // Η εντολή αυτή διασφαλίζει ότι το Jenkins τρέχει στο σωστό σημείο
         sh '''
-        docker compose pull mailhog
-        docker compose up -d mailhog
+        docker compose -f docker-compose.yaml pull mailhog
+        docker compose -f docker-compose.yaml up -d mailhog
         '''
     }
+}
 }
 
         stage('Cleanup') {
