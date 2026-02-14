@@ -162,7 +162,7 @@
         state: started
         enabled: yes
 
-    - name: Stop Docker Nginx and kill any process on 80/443
+    - name: Cleanup Docker and Ports before Native Nginx
       shell: |
         docker rm -f nginx_container || true
         fuser -k 80/tcp || true
@@ -172,28 +172,29 @@
     - name: Install nginx
       apt:
         name: nginx
-        update_cache: yes
-      tags:
-        - install
+        state: present
 
     - name: Copy nginx conf file
       template:
         src: ../services/nginx.j2
         dest: "/etc/nginx/sites-available/reverse_proxy"
-      notify: Restart nginx
 
-    - name: Enable my site in nginx
+    - name: Enable and Clean Nginx Config
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Link Reverse Proxy
       file:
         src: "/etc/nginx/sites-available/reverse_proxy"
         dest: "/etc/nginx/sites-enabled/reverse_proxy"
         state: link
-      notify: Restart nginx
 
-    - name: De-activate default nginx site
-      file:
-        path: /etc/nginx/sites-enabled/default
-        state: absent
-      notify: Restart nginx
+    - name: FORCE START NGINX
+      service:
+        name: nginx
+        state: restarted 
+        enabled: yes
 
   handlers:
     - name: Restart spring
