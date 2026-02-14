@@ -162,10 +162,11 @@
         state: started
         enabled: yes
 
-    - name: Remove Docker Nginx to avoid port conflict
-      docker_container:
-        name: nginx_container
-        state: absent
+    - name: Stop Docker Nginx and kill any process on 80/443
+      shell: |
+        docker rm -f nginx_container || true
+        fuser -k 80/tcp || true
+        fuser -k 443/tcp || true
       ignore_errors: yes
 
     - name: Install nginx
