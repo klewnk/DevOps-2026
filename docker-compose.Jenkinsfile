@@ -8,24 +8,46 @@ pipeline {
             }
         }
 
-        stage('Build & Deploy with Ansible') {
-    steps {
-        sshagent(['gcloud-ssh-key']) {
-            // Προσθέτουμε το DOCKER_TOKEN στο environment της εντολής
-            withCredentials([string(credentialsId: 'docker-push-secret', variable: 'DOCKER_TOKEN')]) {
-                sh "DOCKER_TOKEN=${DOCKER_TOKEN} ansible-playbook -i ansible-devops/inventory.ini ansible-devops/playbooks/docker_deploy.yaml"
+        stage('Local Integration Test') {
+            steps {
+                sh '''
+                echo "--- Σήκωμα Stack τοπικά για δοκιμή ---"
+                # Χρησιμοποιούμε προσωρινό όνομα project για να μην έχουμε conflicts
+                docker compose -p jenkins-test up -d
+                
+                echo "--- Αναμονή 30 δευτερολέπτων για να 'ξυπνήσει' η Java ---"
+                sleep 30
+                
+                echo "--- Έλεγχος επικοινωνίας Nginx -> Java ---"
+                # Ελέγχουμε αν ο Nginx στην πόρτα 80 μας απαντάει
+                curl --fail http://localhost:80 || (echo "❌ Test Failed!" && docker compose -p jenkins-test down && exit 1)
+                
+                echo "✅ Όλα τα containers επικοινωνούν σωστά!"
+                
+                echo "--- Cleanup Test Environment ---"
+                docker compose -p jenkins-test down --volumes
+                '''
             }
         }
-    }
-}
+
+        stage('Build & Deploy with Ansible') {
+            steps {
+                sshagent(['gcloud-ssh-key']) {
+                    withCredentials([string(credentialsId: 'docker-push-secret', variable: 'DOCKER_TOKEN')]) {
+                        echo "--- Ξεκινάει το Deploy στον Cloud Server μέσω Ansible ---"
+                        sh "DOCKER_TOKEN=${DOCKER_TOKEN} ansible-playbook -i ansible-devops/inventory.ini ansible-devops/playbooks/docker_deploy.yaml"
+                    }
+                }
+            }
+        }
     }
     
     post {
         success {
-            echo 'Deployment Finished Successfully!'
+            echo 'Το Integration Test πέρασε ΚΑΙ το Deployment τελείωσε επιτυχώς!'
         }
         failure {
-            echo 'Deployment Failed. Check Ansible logs.'
+            echo ' Κάτι πήγε λάθος. Αν κόπηκε στο Test, ο Cloud Server έμεινε ανέπαφος (ασφαλής).'
         }
     }
 }
