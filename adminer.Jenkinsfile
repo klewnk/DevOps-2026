@@ -31,15 +31,10 @@ pipeline {
             }
         }
         stage('Production Deploy') {
-            steps {
-                sh '''
-                echo "--- Deploying Adminer to Production ---"
-                docker compose up -d adminer
-                # Προαιρετικά κάνουμε restart τον nginx για να σιγουρέψουμε το proxying
-                docker compose restart web 
-                '''
-            }
-        }
+    steps {
+        sh 'docker compose up -d --no-deps adminer' 
+    }
+}
     }
     post {
         always {
