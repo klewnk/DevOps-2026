@@ -63,7 +63,7 @@ services:
       - app-network
 
   mailhog:
-    image: ghcr.io/klewnk/mailhog:latest
+    image: mailhog/mailhog
     container_name: mailhog_container
     restart: always
     ports:
