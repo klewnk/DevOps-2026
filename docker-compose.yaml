@@ -46,7 +46,6 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro # "Περνάει" τα πιστοποιητικά από το VM στον container
     depends_on:
       - app
     networks:
@@ -63,7 +62,7 @@ services:
       - app-network
 
   mailhog:
-    image: mailhog/mailhog
+    image: ghcr.io/klewnk/mailhog:latest
     container_name: mailhog_container
     restart: always
     ports:
