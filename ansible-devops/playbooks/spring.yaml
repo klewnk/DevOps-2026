@@ -162,6 +162,11 @@
         state: started
         enabled: yes
 
+    - name: Remove Docker Nginx to avoid port conflict
+      docker_container:
+        name: nginx_container
+        state: absent
+      ignore_errors: yes
 
     - name: Install nginx
       apt:
