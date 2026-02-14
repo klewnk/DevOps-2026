@@ -11,32 +11,33 @@ pipeline {
         stage('Local Integration Test') {
             steps {
                 sh '''
-                echo "--- Καθαρισμός προηγούμενων αποτυχημένων δοκιμών ---"
-                # Σβήνουμε τα πάντα από το jenkins-test αν υπάρχουν
+                echo "--- Σκληρός καθαρισμός παλιών containers ---"
+                # 1. Σβήνει το test stack αν υπάρχει
                 docker compose -p jenkins-test down --volumes --remove-orphans || true
                 
-                # ΑΝ έχεις σταθερά ονόματα στο compose, τα σβήνουμε και χειροκίνητα για σιγουριά
-                docker rm -f postgres_container mailhog_container spring_app_container nginx_container || true
-
+                # 2. Σβήνει ΟΠΟΙΟΔΗΠΟΤΕ container τρέχει με τα συγκεκριμένα ονόματα (adminer, spring, postgres, κτλ)
+                # Χρησιμοποιούμε μια λίστα για να είμαστε σίγουροι
+                docker rm -f adminer_container postgres_container mailhog_container spring_app_container nginx_container || true
+                
                 echo "--- Σήκωμα Stack τοπικά για δοκιμή ---"
                 docker compose -p jenkins-test up -d
                 
                 echo "--- Αναμονή 30 δευτερολέπτων ---"
                 sleep 30
                 
-                echo "--- Έλεγχος επικοινωνίας Nginx -> Java ---"
-                # Δοκιμάζουμε στην IP του docker0 (172.17.0.1) επειδή το localhost στην πόρτα 80 μπορεί να είναι πιασμένο
+                echo "--- Έλεγχος επικοινωνίας ---"
+                # Χρησιμοποιούμε την IP του docker host για το curl
                 HOST_IP=$(ip route show | grep docker0 | awk '{print $9}')
                 curl --fail http://${HOST_IP}:80 || (echo "❌ Test Failed!" && docker compose -p jenkins-test down && exit 1)
                 
-                echo "✅ Όλα τα containers επικοινωνούν σωστά!"
+                echo "✅ Όλα OK!"
                 
-                echo "--- Cleanup Test Environment ---"
+                echo "--- Cleanup ---"
                 docker compose -p jenkins-test down --volumes
                 '''
             }
         }
-
+        
         stage('Build & Deploy with Ansible') {
             steps {
                 sshagent(['gcloud-ssh-key']) {
