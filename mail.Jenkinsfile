@@ -37,33 +37,26 @@ pipeline {
             }
         }
 
-        stage('Test Component') {
+    stage('Test Component') {
             steps {
-                sh '''
-                sleep 5
-                echo "Checking if Mailhog UI responds..."
-                curl --fail http://localhost:8025 || exit 1
-                '''
+                sh 'sleep 5 && curl --fail http://localhost:8025 || exit 1'
             }
         }
 
-     stage('Production Deploy') {
-    steps {
-        // Η εντολή αυτή διασφαλίζει ότι το Jenkins τρέχει στο σωστό σημείο
-        sh '''
-        docker compose -f docker-compose.yaml pull mailhog
-        docker compose -f docker-compose.yaml up -d mailhog
-        '''
-    }
-}
-}
-
-        stage('Cleanup') {
+        stage('Cleanup Test') { // Μεταφέρουμε το cleanup ΠΡΙΝ το deploy
             steps {
+                sh 'docker rm -f test-mailhog || true'
+            }
+        }
+
+        stage('Production Deploy') {
+            steps {
+                // Χρησιμοποιούμε το docker compose για να ανανεώσουμε ΜΟΝΟ το mailhog
+                // και μετά κάνουμε restart τον nginx για να σιγουρευτούμε ότι "είδε" το νέο container
                 sh '''
-                echo "Cleaning up test container..."
-                docker stop test-mailhog || true
-                docker rm -f test-mailhog || true
+                docker compose pull mailhog
+                docker compose up -d mailhog
+                docker compose restart web
                 '''
             }
         }
