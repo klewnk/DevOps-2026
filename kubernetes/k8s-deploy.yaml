@@ -1,14 +1,14 @@
 ---
 - name: Full Setup and Deploy to MicroK8s
   hosts: devops_gcloud1
-  become: yes  # Τρέχουμε τα πάντα ως root (sudo) για να γίνουν οι εγκαταστάσεις
+  become: yes  # Τρέχουμε τα πάντα ως root (sudo)
   vars:
-    ansible_user: kleonkola  # Ορίζουμε το username σου εδώ για ευκολία
+    ansible_user: kleonkola
 
   tasks:
-    # --- ΒΗΜΑ 1: ΕΓΚΑΤΑΣΤΑΣΗ & ΡΥΘΜΙΣΗ SYSTEM ---
+    # --- ΒΗΜΑ 1: SETUP ---
     
-    - name: Εγκατάσταση MicroK8s (αν δεν υπάρχει)
+    - name: Εγκατάσταση MicroK8s
       community.general.snap:
         name: microk8s
         classic: yes
@@ -20,6 +20,9 @@
         groups: microk8s
         append: yes
 
+    - name: Reset SSH Connection (για να πιάσει το νέο group)
+      meta: reset_connection
+
     - name: Ρύθμιση ιδιοκτησίας του φακέλου .kube
       file:
         path: "/home/{{ ansible_user }}/.kube"
@@ -28,18 +31,17 @@
         group: microk8s
         mode: '0750'
 
-    - name: Ενεργοποίηση Addons (DNS, Storage, Ingress)
-      # Χρησιμοποιούμε το full path για ασφάλεια
+    - name: Ενεργοποίηση Addons
       command: /snap/bin/microk8s enable dns storage ingress
       register: addons_result
       changed_when: "'enabled' in addons_result.stdout"
-      ignore_errors: yes  # Αν είναι ήδη enabled, προχωράμε
+      ignore_errors: yes
 
     - name: Αναμονή μέχρι το MicroK8s να είναι έτοιμο
       command: /snap/bin/microk8s status --wait-ready
       changed_when: false
 
-    # --- ΒΗΜΑ 2: DEPLOYMENT ΕΦΑΡΜΟΓΗΣ (Από τον κώδικά σου) ---
+    # --- ΒΗΜΑ 2: DEPLOYMENT ---
 
     - name: Δημιουργία φακέλου project στο VM
       file:
@@ -51,22 +53,21 @@
 
     - name: Μεταφορά των K8s manifests στο VM
       copy:
-        # Προσοχή στο src: Υποθέτουμε ότι το playbook τρέχει από το root του workspace
-        # και τα αρχεία είναι στον φάκελο kubernetes/
-        src: "{{ item }}"
-        dest: "/home/{{ ansible_user }}/kubernetes/"
+        # Χρησιμοποιούμε το playbook_dir για να βρούμε σίγουρα τα αρχεία
+        src: "{{ playbook_dir }}/{{ item }}"
+        dest: "/home/{{ ansible_user }}/kubernetes/{{ item }}"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0644'
-      with_fileglob:
-        - "kubernetes/*.yaml"
-      # Εξαιρούμε το ίδιο το playbook για να μην αντιγραφεί στον εαυτό του
-      when: item != 'kubernetes/k8s-deploy.yaml'
+      loop:
+        - postgres-k8s.yaml
+        - mailhog-k8s.yaml
+        - adminer-k8s.yaml
+        - app-k8s.yaml
+        - ingress-k8s.yaml
 
-    - name: Apply K8s Manifests
-      # Τρέχουμε το kubectl ως ο συγκεκριμένος χρήστης για να μην ανήκουν τα pods στον root
-      become: yes
-      become_user: "{{ ansible_user }}"
+    - name: Apply K8s Manifests (ως Root για σιγουριά)
+      # Τρέχουμε ως root (become: yes) για να μην έχουμε θέμα permission
       command: /snap/bin/microk8s kubectl apply -f /home/{{ ansible_user }}/kubernetes/{{ item }}
       loop:
         - postgres-k8s.yaml
