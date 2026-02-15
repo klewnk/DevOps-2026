@@ -15,7 +15,7 @@
       copy:
         # Το 'src' δείχνει το path ΣΤΟΝ JENKINS (σχετικό με το playbook)
         # Αν το playbook είναι στο ansible-devops/playbooks/, τότε το ../../kubernetes/ είναι σωστό
-        src: "../../kubernetes/"  
+        src: ./
         dest: "/home/kleonkola/kubernetes/"
         owner: kleonkola
         group: kleonkola
