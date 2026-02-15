@@ -18,9 +18,9 @@ spec:
         ports:
         - containerPort: 1025 # SMTP port
         - containerPort: 8025 # Web UI port
-    env:
-      - name: MH_UI_WEB_PATH
-        value: "mail"
+        env:
+         - name: MH_UI_WEB_PATH
+           value: "mail"
 ---
 apiVersion: v1
 kind: Service
