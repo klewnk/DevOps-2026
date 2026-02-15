@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        // GitHub Container Registry
-        DOCKER_TOKEN = credentials('github-token') // Το ID από Jenkins Credentials
+        DOCKER_TOKEN = credentials('github-token')
         DOCKER_USER = 'klewnk'
         DOCKER_SERVER = 'ghcr.io'
+        // Χρησιμοποιούμε το σωστό όνομα για το Mailhog
         DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/mailhog"
         CONTAINER_NAME = "test-mailhog" // Μία μεταβλητή για όλα τα stages
     }
@@ -24,51 +24,47 @@ pipeline {
                 sh '''
                 HEAD_COMMIT=$(git rev-parse --short HEAD)
                 TAG=$HEAD_COMMIT-$BUILD_ID
-                docker pull nginx:alpine
-                docker tag nginx:alpine $DOCKER_PREFIX:$TAG
-                docker tag nginx:alpine $DOCKER_PREFIX:latest
-
-            '''
-
-                sh '''
+                # Εδώ κανονικά θα έκανες build το Dockerfile σου
+                # Αλλά αν θες να τεστάρεις με ένα έτοιμο image:
+                docker pull mailhog/mailhog:latest 
+                docker tag mailhog/mailhog:latest $DOCKER_PREFIX:$TAG
+                docker tag mailhog/mailhog:latest $DOCKER_PREFIX:latest
+                
                 echo $DOCKER_TOKEN | docker login $DOCKER_SERVER -u $DOCKER_USER --password-stdin
                 docker push $DOCKER_PREFIX --all-tags
-            '''
-            }
-        }
-
-        stage('Pull and run nginx') {
-            steps {
-                sh '''
-                    docker pull $DOCKER_PREFIX:latest
-                    echo "Running nginx container..."
-                    docker run -d --name test-nginx -p 8081:80 $DOCKER_PREFIX:latest
                 '''
             }
         }
 
-    stage('Test Component') {
+        stage('Run Component') {
             steps {
+                sh """
+                    docker pull $DOCKER_PREFIX:latest
+                    echo "Running Mailhog container..."
+                    docker run -d --name ${CONTAINER_NAME} -p 8025:8025 $DOCKER_PREFIX:latest
+                """
+            }
+        }
+
+        stage('Test Component') {
+            steps {
+                echo "Waiting for service to be healthy..."
+                // To Mailhog ακούει στην 8025 για το UI
                 sh 'sleep 5 && curl --fail http://localhost:8025 || exit 1'
             }
         }
-
-        stage('Cleanup Test') { // Μεταφέρουμε το cleanup ΠΡΙΝ το deploy
-            steps {
-                sh 'docker rm -f test-mailhog || true'
-            }
-        }
-
     }
 
     post {
         always {
+            // Αυτό είναι το "μαγικό" σημείο: Καθαρίζει ΠΑΝΤΑ, είτε πέτυχε το test είτε όχι
+            echo 'Final cleanup of test containers...'
+            sh "docker rm -f ${CONTAINER_NAME} || true"
+            
             mail(
                 to: 'it2022041@hua.gr',
-                from: 'it2022041@hua.gr',
-                body: "Mailhog Build status: ${currentBuild.currentResult}",
+                body: "Mailhog Build status: ${currentBuild.currentResult}\nProject: ${env.JOB_NAME}\nBuild: ${env.BUILD_NUMBER}",
                 subject: "JENKINS: Mailhog Component Build",
-                mimeType: 'text/html'
             )
         }
     }
