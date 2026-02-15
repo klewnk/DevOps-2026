@@ -10,6 +10,17 @@ pipeline {
     }
 
       stages {
+       
+         stage('Cleanup Environment') {
+            steps {
+                echo 'Cleaning up old test containers...'
+                // Σβήνουμε τα πάντα για να ξεκινήσουμε από λευκό χαρτί
+                sh 'docker rm -f test-mailhog || true'
+                // Αν θέλεις καθαρίζεις και ορφανά images
+                // sh 'docker image prune -f' 
+            }
+        }
+
         stage('Docker pull and push') {
             steps {
                 sh '''
