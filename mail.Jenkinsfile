@@ -2,65 +2,71 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_TOKEN = credentials('github-token')
-        DOCKER_USER = 'klewnk'
-        DOCKER_SERVER = 'ghcr.io'
-        DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/mailhog"
+        // Ορίζουμε το Image Name για ευκολία
+        DOCKER_IMAGE = "ghcr.io/klewnk/mailhog"
+        // Χρησιμοποιούμε το Jenkins Build Number ή το Git Commit για το Tag
+        IMAGE_TAG = "${env.GIT_COMMIT.take(7)}-${env.BUILD_NUMBER}"
+        // Credentials ID που έχεις ορίσει στο Jenkins για το GHCR
+        DOCKER_CREDS = credentials('DOCKER_TOKEN') 
     }
 
     stages {
-        stage('Initial Cleanup') {
+        stage('Docker build and push') {
             steps {
-                echo 'Cleaning up any leftover containers from failed builds...'
-                // Αυτό θα τρέχει ΠΑΝΤΑ στην αρχή για να ελευθερώνει το όνομα
-                sh 'docker rm -f test-mailhog || true'
+                script {
+                    // Build την εικόνα με το commit hash και το latest tag
+                    sh "docker build --rm -t ${DOCKER_IMAGE}:${IMAGE_TAG} -t ${DOCKER_IMAGE}:latest -f mail.Dockerfile ."
+                    
+                    // Login και Push στο GitHub Container Registry
+                    sh "echo ${DOCKER_TOKEN} | docker login ghcr.io -u klewnk --password-stdin"
+                    sh "docker push ${DOCKER_IMAGE} --all-tags"
+                }
             }
         }
 
-        stage('Docker Build and Push') {
+        stage('Pull and Run Mailhog') {
             steps {
-                sh '''
-                HEAD_COMMIT=$(git rev-parse --short HEAD)
-                TAG=$HEAD_COMMIT-$BUILD_ID
-                
-                # Build το image από το Dockerfile σου
-                docker build --rm -t $DOCKER_PREFIX:$TAG -t $DOCKER_PREFIX:latest -f mail.Dockerfile .
-                
-                # Login και Push
-                echo $DOCKER_TOKEN | docker login $DOCKER_SERVER -u $DOCKER_USER --password-stdin
-                docker push $DOCKER_PREFIX --all-tags
-                '''
-            }
-        }
-
-        stage('Run Mailhog') {
-            steps {
-                sh '''
-                docker pull $DOCKER_PREFIX:latest
-                docker run -d --name test-mailhog -p 8025:8025 $DOCKER_PREFIX:latest
-                '''
+                script {
+                    sh "docker pull ${DOCKER_IMAGE}:latest"
+                    
+                    // ΔΙΟΡΘΩΣΗ: Διαγραφή παλιού container αν υπάρχει για να αποφευχθεί το Conflict
+                    sh "docker rm -f test-mailhog || true"
+                    
+                    echo "Running Mailhog container..."
+                    sh "docker run -d --name test-mailhog -p 8025:8025 -p 1025:1025 ${DOCKER_IMAGE}:latest"
+                }
             }
         }
 
         stage('Test Mailhog') {
             steps {
-                // Δίνουμε 5 δευτερόλεπτα στο container να σηκωθεί
-                sh 'sleep 5 && curl --fail http://localhost:8025'
+                script {
+                    echo "Testing if Mailhog is up..."
+                    // Ένα απλό check αν η θύρα 8025 ανταποκρίνεται
+                    sh "curl -f http://localhost:8025"
+                }
             }
         }
     }
 
     post {
         always {
-            // Εδώ είναι το κλειδί: Καθαρίζει το container είτε πέτυχε το build είτε όχι
-            echo 'Final cleanup...'
-            sh 'docker rm -f test-mailhog || true'
-            
-            mail(
-                to: 'it2022041@hua.gr',
-                subject: "JENKINS: Mailhog Build ${currentBuild.currentResult}",
-                body: "Build Number: ${env.BUILD_NUMBER}\nStatus: ${currentBuild.currentResult}"
-            )
+            script {
+                echo "Cleaning up..."
+                // Σταματάμε και διαγράφουμε τον container μετά το τέλος του pipeline
+                sh "docker stop test-mailhog || true"
+                sh "docker rm test-mailhog || true"
+            }
+        }
+        success {
+            echo "Pipeline finished successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check the logs."
+            // Εδώ μπορείς να προσθέσεις το mail notification που είδα στο log σου
+            mail to: 'admin@example.com',
+                 subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+                 body: "Something went wrong with build ${env.BUILD_NUMBER}"
         }
     }
 }
