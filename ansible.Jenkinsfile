@@ -64,10 +64,10 @@ pipeline {
 
     post {
         success {
-            echo '🚀 Όλα τα Native Services εγκαταστάθηκαν επιτυχώς!'
+            echo 'Όλα τα Native Services εγκαταστάθηκαν επιτυχώς!'
         }
         failure {
-            echo '❌ Κάτι πήγε λάθος στην εγκατάσταση. Δες τα logs του Ansible.'
+            echo 'Κάτι πήγε λάθος στην εγκατάσταση. Δες τα logs του Ansible.'
         }
     }
 }

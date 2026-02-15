@@ -4,7 +4,6 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Κατεβάζει τον κώδικα από το repository σου
                 git branch: 'main', url: 'https://github.com/klewnk/DevOps-2026.git'
             }
         }
@@ -13,7 +12,7 @@ pipeline {
             steps {
                 // Χρήση του SSH Key για σύνδεση στον Cloud Server
                 sshagent(['gcloud-ssh-key']) {
-                    // Χρήση του Docker Token για το login στο Registry αν χρειάζεται
+                    // Χρήση του Docker Token για το login στο Registry 
                     withCredentials([string(credentialsId: 'docker-push-secret', variable: 'DOCKER_TOKEN')]) {
                         sh """
                         DOCKER_TOKEN=${DOCKER_TOKEN} ansible-playbook \

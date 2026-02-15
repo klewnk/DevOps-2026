@@ -22,7 +22,7 @@
           - postgresql-contrib
           - python3-psycopg2
           - acl
-          - psmisc  # Για την εντολή fuser
+          - psmisc  
         state: present
 
     # --- ΚΑΘΑΡΙΣΜΟΣ & ΕΚΚΙΝΗΣΗ ---
@@ -64,7 +64,7 @@
       become: yes
       become_user: postgres
 
-    # --- ΡΥΘΜΙΣΕΙΣ ΔΙΚΤΥΟΥ (ΤΟ ΣΗΜΑΝΤΙΚΟ ΚΟΜΜΑΤΙ) ---
+    # --- ΡΥΘΜΙΣΕΙΣ ΔΙΚΤΥΟΥ  ---
     
     - name: Find config file path
       shell: find /etc/postgresql -name postgresql.conf | head -n 1

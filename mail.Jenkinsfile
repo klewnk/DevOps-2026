@@ -9,7 +9,6 @@ pipeline {
     }
 
     stages {
-        // 1. CLEANUP ΣΤΗΝ ΑΡΧΗ - Οπως ακριβώς στον Adminer
         stage('Cleanup Old Containers') {
             steps {
                 echo "Cleaning up any old test containers..."
@@ -17,7 +16,6 @@ pipeline {
             }
         }
 
-        // 2. BUILD & PUSH - Χρησιμοποιούμε το δικό σου mail.Dockerfile
         stage('Docker Build & Push') {
             steps {
                 sh '''
@@ -32,7 +30,6 @@ pipeline {
             }
         }
 
-        // 3. COMPONENT TESTING - Με έλεγχο στο port 8025 του Mailhog
         stage('Component Testing') {
             steps {
                 sh '''
@@ -65,7 +62,7 @@ pipeline {
 
     post {
         always {
-            // Cleanup για να μη μείνουν σκουπίδια αν αποτύχει κάτι
+            // Cleanup για να μη μείνουν σκουπίδια 
             sh 'docker rm -f test-mailhog || true'
             
             mail(

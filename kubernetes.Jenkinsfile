@@ -56,7 +56,7 @@ pipeline {
 
     post {
         success {
-            echo '🚀 Η εφαρμογή είναι online στο Kubernetes!'
+            echo 'Η εφαρμογή είναι online στο Kubernetes!'
         }
     }
 }

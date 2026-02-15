@@ -5,7 +5,7 @@
     repo_dir: "/home/kleonkola/DevOps-2026"
 
   tasks:
-    # --- ΦΑΣΗ 1: ΠΡΟΕΤΟΙΜΑΣΙΑ & ΚΑΘΑΡΙΣΜΟΣ ---
+    # --- ΠΡΟΕΤΟΙΜΑΣΙΑ & ΚΑΘΑΡΙΣΜΟΣ ---
     
     - name: Install psmisc (fuser)
       apt:
@@ -20,7 +20,7 @@
       loop:
         - postgresql
         - mailhog
-        - nginx  # <--- ΠΡΟΣΘΗΚΗ: Για να ελευθερωθεί η πόρτα 80
+        - nginx 
       ignore_errors: yes
 
     - name: Remove specific conflicting container (db_adminer)
@@ -31,7 +31,7 @@
       shell: "fuser -k 80/tcp 5432/tcp 8081/tcp 8025/tcp 1025/tcp || true"
       ignore_errors: yes
 
-    # --- ΦΑΣΗ 2: ΕΝΗΜΕΡΩΣΗ ΚΩΔΙΚΑ & REGISTRY ---
+    # --- ΕΝΗΜΕΡΩΣΗ ΚΩΔΙΚΑ & REGISTRY ---
 
     - name: Clone or Update git repo
       git:
@@ -47,7 +47,7 @@
         password: "{{ lookup('env', 'DOCKER_TOKEN') }}"
       ignore_errors: yes
 
-    # --- ΦΑΣΗ 3: DEPLOYMENT ---
+    # --- DEPLOYMENT ---
 
     - name: Stop/Remove existing containers from this compose project
       community.docker.docker_compose_v2:

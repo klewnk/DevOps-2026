@@ -14,20 +14,17 @@ spec:
     spec:
       containers:
       - name: spring-app
-        # Εδώ βάζεις το image που κάναμε push στο GitHub πριν!
         image: ghcr.io/klewnk/spring-app:latest
         ports:
         - containerPort: 8080
         env:
-        # Εδώ γίνεται η "μαγεία": Συνδέουμε την εφαρμογή με τη βάση
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:postgresql://postgres-service:5432/devops_db"
         - name: SPRING_DATASOURCE_USERNAME
           value: "dbuser"
         - name: SPRING_DATASOURCE_PASSWORD
           value: "pass123"
-
-          # Σύνδεση με MailHog 
+ 
         - name: SPRING_MAIL_HOST
           value: "mailhog-service"
         - name: SPRING_MAIL_PORT

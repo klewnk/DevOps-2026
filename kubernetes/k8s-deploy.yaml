@@ -32,9 +32,9 @@
         - 443
         - 8080
         - 8025
-      ignore_errors: yes # Αν δεν τρέχει τίποτα, συνέχισε κανονικά
+      ignore_errors: yes
 
-    # --- ΒΗΜΑ 1: SETUP ---
+    # ---SETUP ---
     
     - name: Εγκατάσταση MicroK8s
       community.general.snap:
@@ -69,7 +69,7 @@
       command: /snap/bin/microk8s status --wait-ready
       changed_when: false
 
-    # --- ΒΗΜΑ 2: DEPLOYMENT ---
+    # --- DEPLOYMENT ---
 
     - name: Δημιουργία φακέλου project στο VM
       file:
@@ -81,7 +81,6 @@
 
     - name: Μεταφορά των K8s manifests στο VM
       copy:
-        # Χρησιμοποιούμε το playbook_dir για να βρούμε σίγουρα τα αρχεία
         src: "{{ playbook_dir }}/{{ item }}"
         dest: "/home/{{ ansible_user }}/kubernetes/{{ item }}"
         owner: "{{ ansible_user }}"
@@ -94,8 +93,7 @@
         - app-k8s.yaml
         - ingress-k8s.yaml
 
-    - name: Apply K8s Manifests (ως Root για σιγουριά)
-      # Τρέχουμε ως root (become: yes) για να μην έχουμε θέμα permission
+    - name: Apply K8s Manifests
       command: /snap/bin/microk8s kubectl apply -f /home/{{ ansible_user }}/kubernetes/{{ item }}
       loop:
         - postgres-k8s.yaml

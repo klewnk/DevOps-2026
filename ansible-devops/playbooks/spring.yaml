@@ -4,16 +4,12 @@
   become: yes
 
   vars:
-    # 1. Φάκελος εφαρμογής
     app_dir: "/opt/project20205"
     
-    # 2. Branch
     branch: "main"
     
-    # 3. Χρήστης (Χρησιμοποιείται και στο spring.j2)
     app_user: "kleonkola" 
 
-    # 4. Ρυθμίσεις εφαρμογής (Βάση + EMAIL)
     app:
       env:
         "server.port": "8080"
@@ -43,7 +39,7 @@
   tasks:
     - name: Install required system utilities
       apt:
-        name: psmisc  # εντολή 'fuser'
+        name: psmisc  
         state: present
         update_cache: yes
 
@@ -137,7 +133,6 @@
             args:
               chdir: "{{ app_dir }}"
 
-    # πρόσβαση στο .jar
     - name: Fix permissions - Give ownership to app user
       file:
         path: "{{ app_dir }}"

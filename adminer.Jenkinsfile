@@ -12,7 +12,7 @@ pipeline {
 
       stage('Cleanup Old Containers') {
          steps {
-           sh 'docker rm -f adminer_container || true' // Το || true σημαίνει "μην σταματάς αν δεν υπάρχει"
+           sh 'docker rm -f adminer_container || true' 
          }
        }
 

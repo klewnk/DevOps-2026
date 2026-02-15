@@ -1,7 +1,6 @@
 server {
     listen 80;
     server_name klewn-devops.duckdns.org;
-    # Αυτόματο redirect από HTTP σε HTTPS
     return 301 https://$host$request_uri;
 }
 
@@ -9,7 +8,6 @@ server {
     listen 443 ssl;
     server_name klewn-devops.duckdns.org;
 
-    # Διαδρομές προς τα πιστοποιητικά που φτιάξαμε με το Certbot
     ssl_certificate /etc/letsencrypt/live/klewn-devops.duckdns.org/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/klewn-devops.duckdns.org/privkey.pem;
 
@@ -24,7 +22,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    # 2. Ο Adminer (Native PHP)
+    # Ο Adminer (Native PHP)
 
     location /db/ {
         alias /var/www/adminer/;
@@ -39,7 +37,6 @@ server {
         }
     }
 
-    # Προσθήκη για το Mailhog (αν το τρέχεις native)
     location /mail/ {
         proxy_pass http://127.0.0.1:8025/;
     }

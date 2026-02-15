@@ -6,10 +6,8 @@ After=syslog.target network.target
 User={{ app_user }}
 Group={{ app_user }}
 
-# Ορίζουμε τον φάκελο εργασίας
 WorkingDirectory={{ app_dir }}
 
-# Η εντολή εκκίνησης. 
 ExecStart=/usr/bin/java -jar {{ app_dir }}/target/project20205-0.0.1-SNAPSHOT.jar
 
 SuccessExitStatus=143

@@ -3,11 +3,10 @@
   hosts: all
   become: yes
   vars:
-    # Ορίζουμε το project directory στο server
     project_dir: "/home/{{ ansible_user }}/docker_project"
 
   tasks:
-    # --- 1. ΚΑΘΑΡΙΣΜΟΣ (Clean up Native Services) ---
+    # ---ΚΑΘΑΡΙΣΜΟΣ---
     - name: Stop Native Spring Service (if running)
       service:
         name: spring
@@ -24,13 +23,13 @@
       shell: "fuser -k 8080/tcp; fuser -k 5432/tcp"
       ignore_errors: yes
 
-    # --- 2. ΕΓΚΑΤΑΣΤΑΣΗ DOCKER ---
+    # ---ΕΓΚΑΤΑΣΤΑΣΗ DOCKER ---
     - name: Install Docker dependencies
       apt:
         name:
           - docker.io
           - docker-compose-v2
-          - psmisc # Για το fuser
+          - psmisc 
         state: present
         update_cache: yes
 
@@ -40,7 +39,7 @@
         groups: docker
         append: yes
 
-    # --- 3. ΠΡΟΕΤΟΙΜΑΣΙΑ ΦΑΚΕΛΩΝ ---
+    # ---ΠΡΟΕΤΟΙΜΑΣΙΑ ΦΑΚΕΛΩΝ ---
     - name: Create project directory
       file:
         path: "{{ project_dir }}"
@@ -48,7 +47,7 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
 
-    # --- 4. ΜΕΤΑΦΟΡΑ ΑΡΧΕΙΩΝ ---
+    # ---ΜΕΤΑΦΟΡΑ ΑΡΧΕΙΩΝ ---
     - name: Copy docker-compose file
       copy:
         src: ../../docker-compose.yaml
@@ -56,9 +55,8 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
 
-    # --- 5. ΕΚΤΕΛΕΣΗ (DEPLOY) ---
+    # --- ΕΚΤΕΛΕΣΗ (DEPLOY) ---
     - name: Login to GitHub Container Registry
-      # Χρησιμοποιούμε το token που στείλαμε από το Jenkins
       shell: "echo {{ docker_token }} | docker login ghcr.io -u klewnk --password-stdin"
       no_log: true 
 
