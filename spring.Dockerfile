@@ -1,24 +1,16 @@
-# --- Stage 1: Build ---
-# Χρησιμοποιούμε μια εικόνα που έχει ήδη το Maven εγκατεστημένο
-FROM maven:3.9-eclipse-temurin-17-alpine AS build
+FROM maven:3.9.11-amazoncorretto-24-alpine AS build
 
-WORKDIR /app
 
-# Αντιγράφουμε τα αρχεία του project
-COPY . .
+WORKDIR /build
 
-# Χτίζουμε το JAR χρησιμοποιώντας το 'mvn' του συστήματος (όχι το ./mvnw)
+COPY pom.xml .
+COPY src/ ./src
+
 RUN mvn clean package -DskipTests
 
-# --- Stage 2: Run ---
-# Χρησιμοποιούμε μια ελαφριά έκδοση Java για να τρέξει η εφαρμογή
-FROM eclipse-temurin:17-jre-alpine
 
+FROM openjdk:26-ea-25-slim-trixie
 WORKDIR /app
+COPY --from=build build/target/project20205-0.0.1-SNAPSHOT.jar ./application.jar
 
-# Παίρνουμε ΜΟΝΟ το JAR αρχείο από το προηγούμενο στάδιο (build)
-# Αυτό μειώνει το μέγεθος του τελικού image δραματικά
-COPY --from=build /app/target/*.jar app.jar
-
-# Τρέχουμε την εφαρμογή
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-jar" , "application.jar"]
