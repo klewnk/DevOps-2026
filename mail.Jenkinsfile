@@ -39,15 +39,16 @@ pipeline {
                 echo "--- Starting Mailhog Test ---"
                 docker rm -f test-mailhog || true
                 
-                # Τρέχουμε τον container για test
-                docker run -d --name test-mailhog -p 8025:8025 -p 1025:1025 $DOCKER_PREFIX:latest
+                # Αλλάζουμε τις εξωτερικές πόρτες σε 9025 και 9026 για να μην έχουμε conflict
+                # Host:9025 -> Container:8025 (UI)
+                # Host:9026 -> Container:1025 (SMTP)
+                docker run -d --name test-mailhog -p 9025:8025 -p 9026:1025 $DOCKER_PREFIX:latest
                 
                 sleep 10
                 
-                # Έλεγχος αν απαντάει το UI
-                curl --fail http://localhost:8025 && echo "✅ Mailhog UI is UP" || (docker rm -f test-mailhog && exit 1)
+                # Ελέγχουμε την πόρτα 9025 πλέον!
+                curl --fail http://localhost:9025 && echo "✅ Mailhog UI is UP" || (docker rm -f test-mailhog && exit 1)
                 
-                # Καθαρίζουμε τον test container αφού πέτυχε
                 docker rm -f test-mailhog
                 '''
             }
