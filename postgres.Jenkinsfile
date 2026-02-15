@@ -6,6 +6,13 @@ pipeline {
     }
     
     stages {
+
+        stage('Cleanup Old Containers') {
+         steps {
+           sh 'docker rm -f postgres_container || true' // Το || true σημαίνει "μην σταματάς αν δεν υπάρχει"
+         }
+       }
+
         stage('Docker Pull, Tag & Push') {
             steps {
                 sh '''
