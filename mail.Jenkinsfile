@@ -37,11 +37,6 @@ pipeline {
             steps {
                 sh '''
                 echo "--- Starting Mailhog Test ---"
-                docker rm -f test-mailhog || true
-                
-                # Αλλάζουμε τις εξωτερικές πόρτες σε 9025 και 9026 για να μην έχουμε conflict
-                # Host:9025 -> Container:8025 (UI)
-                # Host:9026 -> Container:1025 (SMTP)
                 docker run -d --name test-mailhog -p 9025:8025 -p 9026:1025 $DOCKER_PREFIX:latest
                 
                 sleep 10
