@@ -47,7 +47,7 @@ pipeline {
             when { expression { return params.INSTALL_ADMINER } }
             steps {
                 sshagent(['gcloud-ssh-key']) {
-                    sh "ansible-playbook -i ansible-devops/inventory.ini ansible-devops/playbooks/adminer.yaml"
+                    sh "ansible-playbook -i ansible-devops/inventory.ini ansible-devops/playbooks/db_ui.yaml"
                 }
             }
         }
