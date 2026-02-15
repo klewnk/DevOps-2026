@@ -9,30 +9,31 @@ pipeline {
         DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/mailhog"
     }
 
-    stages {
-        stage('Docker Build and Push') {
+      stages {
+        stage('Docker pull and push') {
             steps {
                 sh '''
-                # Δημιουργία Tag με βάση το Commit και το Build ID
                 HEAD_COMMIT=$(git rev-parse --short HEAD)
                 TAG=$HEAD_COMMIT-$BUILD_ID
-                
-                # Build χρησιμοποιώντας Dockerfile
-                docker build --rm -t $DOCKER_PREFIX:$TAG -t $DOCKER_PREFIX:latest -f mail.Dockerfile .
-                
-                # Login και Push στο GHCR
+                docker pull nginx:alpine
+                docker tag nginx:alpine $DOCKER_PREFIX:$TAG
+                docker tag nginx:alpine $DOCKER_PREFIX:latest
+
+            '''
+
+                sh '''
                 echo $DOCKER_TOKEN | docker login $DOCKER_SERVER -u $DOCKER_USER --password-stdin
                 docker push $DOCKER_PREFIX --all-tags
-                '''
+            '''
             }
         }
 
-        stage('Pull and Run Test') {
+        stage('Pull and run nginx') {
             steps {
                 sh '''
-                docker pull $DOCKER_PREFIX:latest
-                echo "Starting temporary container for testing..."
-                docker run -d --name test-mailhog -p 8025:8025 $DOCKER_PREFIX:latest
+                    docker pull $DOCKER_PREFIX:latest
+                    echo "Running nginx container..."
+                    docker run -d --name test-nginx -p 8081:80 $DOCKER_PREFIX:latest
                 '''
             }
         }
