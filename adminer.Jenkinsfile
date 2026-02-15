@@ -5,13 +5,18 @@ pipeline {
         DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/adminer"
     }
 
-
-    stage('Cleanup Old Containers') {
-    steps {
-        sh 'docker rm -f adminer_container || true' // Το || true σημαίνει "μην σταματάς αν δεν υπάρχει"
-    }
-     }
     stages {
+
+
+
+
+      stage('Cleanup Old Containers') {
+         steps {
+           sh 'docker rm -f adminer_container || true' // Το || true σημαίνει "μην σταματάς αν δεν υπάρχει"
+         }
+       }
+
+
         stage('Docker Build & Push') {
             steps {
                 sh '''
