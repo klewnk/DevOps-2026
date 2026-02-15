@@ -4,11 +4,18 @@ pipeline {
         DOCKER_USER = 'klewnk'
         DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/postgres-db"
     }
+    
     stages {
-        stage('Docker Build & Push') {
+        stage('Docker Pull, Tag & Push') {
             steps {
                 sh '''
-                docker build -t $DOCKER_PREFIX:latest -f postgres.Dockerfile .
+                echo "--- Pulling official Postgres image ---"
+                docker pull postgres:15-alpine
+                
+                echo "--- Tagging image for GHCR ---"
+                docker tag postgres:15-alpine $DOCKER_PREFIX:latest
+                
+                echo "--- Pushing image to GHCR ---"
                 docker push $DOCKER_PREFIX:latest
                 '''
             }
