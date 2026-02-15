@@ -49,14 +49,18 @@ pipeline {
             }
         }
 
-        // 4. PRODUCTION DEPLOY
         stage('Production Deploy') {
-            steps {
-                echo "Deploying to production via Docker Compose..."
-                // Εδώ σιγουρέψου ότι στο docker-compose.yml το service λέγεται mailhog
-                sh 'docker compose up -d --no-deps mailhog'
-            }
-        }
+    steps {
+        echo "Deploying to production via Docker Compose..."
+        sh '''
+        # Stop and remove the existing container to prevent naming conflicts
+        docker rm -f mailhog_container || true
+        
+        # Bring up the new container
+        docker compose up -d --no-deps mailhog
+        '''
+    }
+}
     }
 
     post {
