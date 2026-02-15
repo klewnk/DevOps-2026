@@ -32,4 +32,4 @@ spec:
           service:
             name: mailhog-service
             port:
-              number: 8080
+              number: 8025

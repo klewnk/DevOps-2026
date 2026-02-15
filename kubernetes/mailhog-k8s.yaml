@@ -35,3 +35,8 @@ spec:
       protocol: TCP
       port: 8025
       targetPort: 8025
+
+
+  env:
+          - name: MH_UI_WEB_PATH
+            value: "mail"
