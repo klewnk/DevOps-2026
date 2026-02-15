@@ -33,6 +33,7 @@
         - 8080
         - 8025
       ignore_errors: yes # Αν δεν τρέχει τίποτα, συνέχισε κανονικά
+
     # --- ΒΗΜΑ 1: SETUP ---
     
     - name: Εγκατάσταση MicroK8s
@@ -102,3 +103,16 @@
         - adminer-k8s.yaml
         - app-k8s.yaml
         - ingress-k8s.yaml
+
+
+    - name: Wait for Pods
+      command: "microk8s kubectl wait --for=condition=ready pod -l app=spring-app --timeout=120s"
+      
+    - name: Smoke Test (Check 200 OK)
+      uri:
+        url: "http://klewn-devops.duckdns.org"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 20
+      delay: 5
