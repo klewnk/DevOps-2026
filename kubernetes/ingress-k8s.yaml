@@ -3,17 +3,13 @@ kind: Ingress
 metadata:
   name: main-ingress
   annotations:
-    # Αφαιρέσαμε το rewrite-target γιατί μπέρδευε τα paths
-    # Αν χρειαστείς rewrite για adminer, θέλει regex (πιο σύνθετο)
+
 spec:
-  # Λέμε στο MicroK8s να το διαχειριστεί αυτό
   ingressClassName: public
   rules:
-  # ΠΡΟΣΟΧΗ: Αυτό πρέπει να είναι ΙΔΙΟ με αυτό που χτυπάει το Jenkins Smoke Test
   - host: klewn-devops.duckdns.org 
     http:
       paths:
-      # 1. Spring Boot (Η κύρια εφαρμογή πιάνει τα πάντα)
       - path: /
         pathType: Prefix
         backend:
@@ -22,8 +18,7 @@ spec:
             port:
               number: 80
 
-      # 2. Adminer (ΠΡΟΣΟΧΗ: Χωρίς rewrite ίσως θέλει ρύθμιση Base URL)
-      - path: /adminer
+      - path: /db
         pathType: Prefix
         backend:
           service:
@@ -31,8 +26,7 @@ spec:
             port:
               number: 8080
 
-      # 3. MailHog
-      - path: /mailhog
+      - path: /mail
         pathType: Prefix
         backend:
           service:
