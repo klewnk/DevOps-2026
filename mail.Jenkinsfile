@@ -7,17 +7,15 @@ pipeline {
         DOCKER_USER = 'klewnk'
         DOCKER_SERVER = 'ghcr.io'
         DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/mailhog"
+        CONTAINER_NAME = "test-mailhog" // Μία μεταβλητή για όλα τα stages
     }
 
-      stages {
-       
-         stage('Cleanup Environment') {
+    stages {
+        stage('Cleanup Environment') {
             steps {
-                echo 'Cleaning up old test containers...'
-                // Σβήνουμε τα πάντα για να ξεκινήσουμε από λευκό χαρτί
-                sh 'docker rm -f test-mailhog || true'
-                // Αν θέλεις καθαρίζεις και ορφανά images
-                // sh 'docker image prune -f' 
+                echo 'Cleaning up before we start...'
+                // Σβήνουμε το σωστό container name
+                sh "docker rm -f ${CONTAINER_NAME} || true"
             }
         }
 
