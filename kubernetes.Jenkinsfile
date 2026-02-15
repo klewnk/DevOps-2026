@@ -46,11 +46,10 @@ pipeline {
             }
         }
 
-        stage('Verification') {
+     stage('Verification') {
             steps {
-                sh "microk8s kubectl get pods"
-                sh "microk8s kubectl get ingress"
-                echo "✅ Deployment complete! Check your FQDN."
+                echo 'Verifying deployment on remote VM...'
+                sh 'ansible -i ansible-devops/inventory.ini all -m command -a "/snap/bin/microk8s kubectl get pods" --user kleonkola --become'
             }
         }
     }
