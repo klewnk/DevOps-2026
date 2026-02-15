@@ -1,10 +1,12 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_USER = 'it2022057'
+        environment {
+        // GitHub Container Registry
+        DOCKER_TOKEN = credentials('github-token') // Το ID από Jenkins Credentials
+        DOCKER_USER = 'klewnk'
+        DOCKER_SERVER = 'ghcr.io'
         DOCKER_PREFIX = "ghcr.io/${DOCKER_USER}/spring-app"
-        ANSIBLE_HOST_KEY_CHECKING = 'False'
     }
 
     stages {
