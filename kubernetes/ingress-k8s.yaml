@@ -3,16 +3,17 @@ kind: Ingress
 metadata:
   name: main-ingress
   annotations:
-    # Λέμε στο Kubernetes να χρησιμοποιήσει τον Nginx ως Ingress Controller
-    kubernetes.io/ingress.class: nginx
-    # Επιτρέπει στο Spring App να διαβάζει τα σωστά paths
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    # Αφαιρέσαμε το rewrite-target γιατί μπέρδευε τα paths
+    # Αν χρειαστείς rewrite για adminer, θέλει regex (πιο σύνθετο)
 spec:
+  # Λέμε στο MicroK8s να το διαχειριστεί αυτό
+  ingressClassName: public
   rules:
-  - host: it2022057.piraeus.edu.gr  # Εδώ βάζεις το δικό σου FQDN
+  # ΠΡΟΣΟΧΗ: Αυτό πρέπει να είναι ΙΔΙΟ με αυτό που χτυπάει το Jenkins Smoke Test
+  - host: klewn-devops.duckdns.org 
     http:
       paths:
-      # 1. Η κεντρική εφαρμογή (Spring Boot)
+      # 1. Spring Boot (Η κύρια εφαρμογή πιάνει τα πάντα)
       - path: /
         pathType: Prefix
         backend:
@@ -21,7 +22,7 @@ spec:
             port:
               number: 80
 
-      # 2. Το περιβάλλον διαχείρισης βάσης (Adminer)
+      # 2. Adminer (ΠΡΟΣΟΧΗ: Χωρίς rewrite ίσως θέλει ρύθμιση Base URL)
       - path: /adminer
         pathType: Prefix
         backend:
@@ -30,7 +31,7 @@ spec:
             port:
               number: 8080
 
-      # 3. Το email testing UI (MailHog)
+      # 3. MailHog
       - path: /mailhog
         pathType: Prefix
         backend:
