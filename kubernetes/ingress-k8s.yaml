@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: main-ingress
+  annotations:
+    # Λέμε στο Kubernetes να χρησιμοποιήσει τον Nginx ως Ingress Controller
+    kubernetes.io/ingress.class: nginx
+    # Επιτρέπει στο Spring App να διαβάζει τα σωστά paths
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: it2022057.piraeus.edu.gr  # Εδώ βάζεις το δικό σου FQDN
+    http:
+      paths:
+      # 1. Η κεντρική εφαρμογή (Spring Boot)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: spring-app-service
+            port:
+              number: 80
+
+      # 2. Το περιβάλλον διαχείρισης βάσης (Adminer)
+      - path: /adminer
+        pathType: Prefix
+        backend:
+          service:
+            name: adminer-service
+            port:
+              number: 8080
+
+      # 3. Το email testing UI (MailHog)
+      - path: /mailhog
+        pathType: Prefix
+        backend:
+          service:
+            name: mailhog-service
+            port:
+              number: 8025
