@@ -39,7 +39,7 @@ pipeline {
                 sshagent(['gcloud-ssh-key']) {
                     sh '''
                     ansible-playbook -i ansible-devops/inventory.ini \
-                    kubernetes/k8s_deploy.yaml \
+                    kubernetes/k8s-deploy.yaml \
                     --user kleonkola
                     '''
                 }
