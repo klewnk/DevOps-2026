@@ -30,7 +30,7 @@ pipeline {
             echo '✅ Deployment Finished Successfully!'
         }
         failure {
-            echo '❌ Deployment Failed. Check Ansible logs in the console output.'
+            echo '❌ Deployment Failed. Check logs in the console output.'
         }
     }
 }
