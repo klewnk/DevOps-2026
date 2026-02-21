@@ -22,7 +22,6 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    # Ο Adminer (Native PHP)
 
     location /db/ {
         alias /var/www/adminer/;
@@ -30,7 +29,6 @@ server {
 
         location ~ \.php$ {
             include snippets/fastcgi-php.conf;
-            # Προσοχή: Τσέκαρε αν η έκδοση είναι 8.1, 8.2 ή 8.3
             fastcgi_pass unix:/var/run/php/php-fpm.sock; 
             fastcgi_param SCRIPT_FILENAME $request_filename;
             include fastcgi_params;
