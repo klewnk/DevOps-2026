@@ -164,28 +164,22 @@
       systemd:
         daemon_reload: yes
 
-    - name: 1. Start Native Postgres
+    - name: 1. Force Restart Native Postgres
       service:
         name: postgresql
-        state: started
+        state: restarted  # Επιβάλλουμε φρεσκάρισμα
         enabled: yes
 
     - name: 1b. Wait for Postgres to actually be ready
       wait_for:
         port: 5432
-        host: localhost
-        delay: 2      
-        timeout: 30     
+        host: 127.0.0.1   # Χρήση IP για σιγουριά
+        delay: 5          # Δώσε 5 δευτερόλεπτα αβάντζα
+        timeout: 45       # Δώσε της περισσότερο χρόνο να "συνέλθει" 
 
     - name: 2. Start Spring Application
       service:
         name: spring
-        state: restarted
-        enabled: yes
-
-    - name: 3. Start Nginx Last
-      service:
-        name: nginx
         state: restarted
         enabled: yes
 
