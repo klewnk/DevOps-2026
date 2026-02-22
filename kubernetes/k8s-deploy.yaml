@@ -110,6 +110,11 @@
         - ingress-k8s.yaml
 
 
+    - name: Pause for 15s to allow Pod creation
+      pause:
+        seconds: 15
+
+
     - name: Wait for Pods
       command: "microk8s kubectl wait --for=condition=ready pod -l app=spring-app --timeout=120s"
       
