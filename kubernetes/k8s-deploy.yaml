@@ -14,7 +14,7 @@
         state: present
 
     - name: Stop and Remove ALL Docker Containers
-      shell: "docker rm -f $(docker ps -aq) || true"
+      shell: "docker stop $(docker ps -q) || true && docker rm $(docker ps -aq) || true"
       ignore_errors: yes
 
     - name: Σταμάτημα γνωστών services που δημιουργούν conflicts
@@ -31,8 +31,16 @@
       ignore_errors: yes
 
     - name: Ensure MicroK8s is STARTED
-      command: microk8s start
+      shell: "/snap/bin/microk8s start"
+      register: micro_start
+      failed_when: 
+        - micro_start.rc != 0 
+        - "'already running' not in micro_start.stdout"
       ignore_errors: yes
+
+    - name: Περίμενε 15 δευτερόλεπτα για να σηκωθούν τα services του K8s
+      pause:
+        seconds: 15
 
 
 
