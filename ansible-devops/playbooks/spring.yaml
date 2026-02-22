@@ -37,6 +37,20 @@
         - install
     
   tasks:
+    
+    - name: Stop MicroK8s (To free up ports 80/443 from Ingress)
+      command: microk8s stop
+      ignore_errors: yes
+
+    - name: Stop and Remove ALL Docker Containers
+      shell: "docker rm -f $(docker ps -aq) || true"
+      ignore_errors: yes
+
+    - name: Force kill everything on project ports (80, 443, 8080, 5432, 8025)
+      shell: "fuser -k 80/tcp 443/tcp 8080/tcp 5432/tcp 8025/tcp || true"
+      ignore_errors: yes
+
+
     - name: Install required system utilities
       apt:
         name: psmisc  
