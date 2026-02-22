@@ -25,15 +25,10 @@
       ignore_errors: yes
 
     - name: Βίαιο κλείσιμο διεργασιών στις πόρτες 80, 443, 8080, 8025
-      shell: "fuser -k {{ item }}/tcp"
-      loop:
-        - 80
-        - 443
-        - 8080
-        - 8025
+      shell: "fuser -k {{ item }}/tcp || true"
+      loop: [80, 443, 8080, 8025]
       ignore_errors: yes
 
-    # ---SETUP ---
     
     - name: Εγκατάσταση MicroK8s
       community.general.snap:
