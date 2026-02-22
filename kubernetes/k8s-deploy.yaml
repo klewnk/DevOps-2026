@@ -20,8 +20,6 @@
         enabled: no
       loop:
         - nginx
-        - apache2
-        - httpd
         - spring
         - postgresql
       ignore_errors: yes
@@ -52,22 +50,18 @@
     - name: Reset SSH Connection (για να πιάσει το νέο group)
       meta: reset_connection
 
-
-    - name: Force Start MicroK8s via Systemd
-      systemd:
-        name: snap.microk8s.daemon-clusteragent
-        state: started
-        enabled: yes
-      ignore_errors: yes
-
-    - name: Full MicroK8s Start Command
-      command: /snap/bin/microk8s start
+     # --- ΕΚΚΙΝΗΣΗ MICROK8S ---
+    - name: Force Start MicroK8s via Snap command
+      shell: "snap start microk8s"
       become: yes
       ignore_errors: yes
 
-    - name: Αναμονή 30 δευτερολέπτων (Το K8s είναι βαρύ)
-      pause:
-        seconds: 30
+    - name: Wait for MicroK8s API to be ready
+      command: /snap/bin/microk8s status --wait-ready
+      register: status_ready
+      until: status_ready.rc == 0
+      retries: 15
+      delay: 5
 
     - name: Ρύθμιση ιδιοκτησίας του φακέλου .kube
       file:
