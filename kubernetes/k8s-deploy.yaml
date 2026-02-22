@@ -52,6 +52,15 @@
     - name: Reset SSH Connection (για να πιάσει το νέο group)
       meta: reset_connection
 
+
+    - name: Eκκίνηση του MicroK8s
+      command: /snap/bin/microk8s start
+      ignore_errors: yes
+
+    - name: Αναμονή 10 δευτερολέπτων για το API Server
+      pause:
+        seconds: 10
+
     - name: Ρύθμιση ιδιοκτησίας του φακέλου .kube
       file:
         path: "/home/{{ ansible_user }}/.kube"
