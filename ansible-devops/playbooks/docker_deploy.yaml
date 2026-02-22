@@ -12,7 +12,7 @@
         name: psmisc
         state: present
 
-        
+
     - name: Ensure MicroK8s is stopped to free up ports 80 and 443
       command: microk8s stop
       ignore_errors: yes
@@ -29,6 +29,13 @@
         - postgresql
         - mailhog
         - nginx 
+      ignore_errors: yes
+
+    - name: Stop Native Spring Service to avoid double app running
+      service:
+        name: spring
+        state: stopped
+        enabled: no
       ignore_errors: yes
 
     - name: Remove specific conflicting container (db_adminer)
