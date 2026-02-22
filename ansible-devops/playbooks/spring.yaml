@@ -164,11 +164,18 @@
       systemd:
         daemon_reload: yes
 
-    - name: 1. Start Native Postgres First
+    - name: 1. Start Native Postgres
       service:
         name: postgresql
         state: started
         enabled: yes
+
+    - name: 1b. Wait for Postgres to actually be ready
+      wait_for:
+        port: 5432
+        host: localhost
+        delay: 2      
+        timeout: 30     
 
     - name: 2. Start Spring Application
       service:
@@ -180,12 +187,6 @@
       service:
         name: nginx
         state: restarted
-        enabled: yes
-
-    - name: Ensure spring service started
-      service:
-        name: spring
-        state: started
         enabled: yes
 
     - name: Cleanup Docker and Ports before Native Nginx
