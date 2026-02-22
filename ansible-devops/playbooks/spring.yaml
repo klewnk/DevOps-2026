@@ -50,7 +50,6 @@
       shell: "fuser -k 80/tcp 443/tcp 8080/tcp 5432/tcp 8025/tcp || true"
       ignore_errors: yes
 
-
     - name: Install required system utilities
       apt:
         name: psmisc  
@@ -165,6 +164,24 @@
       systemd:
         daemon_reload: yes
 
+    - name: 1. Start Native Postgres First
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: 2. Start Spring Application
+      service:
+        name: spring
+        state: restarted
+        enabled: yes
+
+    - name: 3. Start Nginx Last
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
+
     - name: Ensure spring service started
       service:
         name: spring
@@ -204,6 +221,7 @@
         name: nginx
         state: restarted 
         enabled: yes
+        
 
   handlers:
     - name: Restart spring
