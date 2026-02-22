@@ -53,13 +53,18 @@
       meta: reset_connection
 
 
-    - name: Eκκίνηση του MicroK8s
-      command: /snap/bin/microk8s start
+    - name: Eκκίνηση του MicroK8s (χωρίς sudo)
+      shell: "microk8s start"
+      become: no  
+      register: m8s_start
+      failed_when: 
+        - m8s_start.rc != 0 
+        - "'already running' not in m8s_start.stdout"
       ignore_errors: yes
 
-    - name: Αναμονή 10 δευτερολέπτων για το API Server
+    - name: Αναμονή 20 δευτερολέπτων
       pause:
-        seconds: 10
+        seconds: 20
 
     - name: Ρύθμιση ιδιοκτησίας του φακέλου .kube
       file:
