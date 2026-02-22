@@ -8,11 +8,14 @@
 
 
   tasks:
-    # --- BLOCK A: PRE-DEPLOYMENT CLEANUP ---
     - name: Εγκατάσταση εργαλείου fuser (αν λείπει)
       apt:
         name: psmisc
         state: present
+
+    - name: Stop and Remove ALL Docker Containers
+      shell: "docker rm -f $(docker ps -aq) || true"
+      ignore_errors: yes
 
     - name: Σταμάτημα γνωστών services που δημιουργούν conflicts
       service:
@@ -23,7 +26,15 @@
         - nginx
         - apache2
         - httpd
+        - spring
+        - postgresql
       ignore_errors: yes
+
+    - name: Ensure MicroK8s is STARTED
+      command: microk8s start
+      ignore_errors: yes
+
+
 
     - name: Βίαιο κλείσιμο διεργασιών στις πόρτες 80, 443, 8080, 8025
       shell: "fuser -k {{ item }}/tcp"
