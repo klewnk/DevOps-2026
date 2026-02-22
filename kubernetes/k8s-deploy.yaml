@@ -53,18 +53,21 @@
       meta: reset_connection
 
 
-    - name: Eκκίνηση του MicroK8s (χωρίς sudo)
-      shell: "microk8s start"
-      become: no  
-      register: m8s_start
-      failed_when: 
-        - m8s_start.rc != 0 
-        - "'already running' not in m8s_start.stdout"
+    - name: Force Start MicroK8s via Systemd
+      systemd:
+        name: snap.microk8s.daemon-clusteragent
+        state: started
+        enabled: yes
       ignore_errors: yes
 
-    - name: Αναμονή 20 δευτερολέπτων
+    - name: Full MicroK8s Start Command
+      command: /snap/bin/microk8s start
+      become: yes
+      ignore_errors: yes
+
+    - name: Αναμονή 30 δευτερολέπτων (Το K8s είναι βαρύ)
       pause:
-        seconds: 20
+        seconds: 30
 
     - name: Ρύθμιση ιδιοκτησίας του φακέλου .kube
       file:
